@@ -6,8 +6,8 @@
 // phases" and "Continue". The user edits any row, any number of times, in any
 // order, then continues.
 //
-// Claude Code and Codex run Claude/OpenAI-managed models; pi and OpenCode are
-// multi-provider. The catalog is discovered from the user's OpenCode
+// Claude Code is single-provider (Anthropic-managed models); pi, OpenCode and
+// Codex are multi-provider. The catalog is discovered from the user's OpenCode
 // subscriptions where available — no model IDs hardcoded for that path.
 
 import * as p from "@clack/prompts";
@@ -54,7 +54,7 @@ interface ModelCatalog {
 function buildCatalog(agent: AgentId): ModelCatalog {
   const discovered = discoverModels();
 
-  if (agent === "claude-code" || agent === "codex") {
+  if (agent === "claude-code") {
     const anthropic = discovered.find((provider) => provider.id === "anthropic");
     return {
       multiProvider: false,
