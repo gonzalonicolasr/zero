@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>zero — el SDD que aprende</title>
+<meta name="description" content="zero instala un pipeline SDD para agentes de IA con veredicto adversarial, memoria de corridas, specs canónicas y autotune por fase." />
+<meta property="og:title" content="zero — el SDD que aprende" />
+<meta property="og:description" content="Un SDD para agentes de IA que no solo ejecuta specs: aprende de cada corrida." />
+<meta property="og:type" content="website" />
+<style>
+  :root {
+    --bg: #07090d;
+    --bg-2: #0d1118;
+    --ink: #f4f6fb;
+    --muted: #a7b0c1;
+    --quiet: #778195;
+    --panel: #111720;
+    --panel-2: #151d29;
+    --border: #293242;
+    --amber: #f5b85d;
+    --blue: #78b7ff;
+    --violet: #9c7cff;
+    --green: #65d79f;
+    --red: #f17786;
+    --shadow: 0 28px 90px rgba(0, 0, 0, .42);
+    --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    min-height: 100vh;
+    color: var(--ink);
+    font: 16px/1.6 var(--sans);
+    background:
+      linear-gradient(115deg, rgba(245, 184, 93, .12), transparent 34%),
+      linear-gradient(245deg, rgba(120, 183, 255, .10), transparent 35%),
+      linear-gradient(180deg, var(--bg), var(--bg-2) 45%, var(--bg));
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  code, .mono { font-family: var(--mono); }
+  code {
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 6px;
+    background: rgba(255,255,255,.05);
+    padding: 1px 6px;
+  }
+  b, strong { color: var(--ink); }
+
+  .site {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 24px 0;
+    color: var(--muted);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    font-weight: 760;
+    letter-spacing: .02em;
+  }
+  .mark {
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(245, 184, 93, .55);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: var(--amber);
+    background: rgba(245, 184, 93, .09);
+    font-family: var(--mono);
+  }
+  .links {
+    display: flex;
+    gap: 18px;
+    font-size: 14px;
+  }
+  .links a { color: var(--muted); }
+  .links a:hover { color: var(--ink); }
+
+  .hero {
+    position: relative;
+    min-height: 640px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: #080b11;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(7, 9, 13, .96) 0%, rgba(7, 9, 13, .78) 36%, rgba(7, 9, 13, .18) 66%, rgba(7, 9, 13, .70) 100%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 96px);
+    z-index: 2;
+    pointer-events: none;
+  }
+  .hero-art {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .hero-art img {
+    position: absolute;
+    bottom: 0;
+    height: 108%;
+    width: auto;
+    object-fit: cover;
+    filter: saturate(1.04) contrast(1.02);
+  }
+  .hero-art .architect {
+    right: 4%;
+  }
+  .hero-art .reviewer {
+    right: 35%;
+    opacity: .68;
+    transform: scale(.92);
+    transform-origin: bottom center;
+    mix-blend-mode: screen;
+  }
+  .hero-copy {
+    position: relative;
+    z-index: 3;
+    max-width: 650px;
+    padding: 74px 54px 46px;
+  }
+  .eyebrow {
+    color: var(--amber);
+    font: 700 12px/1.2 var(--mono);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin-top: 18px;
+    font-size: 68px;
+    line-height: .96;
+    letter-spacing: 0;
+    font-weight: 850;
+  }
+  .headline-sub {
+    display: block;
+    color: var(--muted);
+    font-size: 28px;
+    font-weight: 650;
+    margin-top: 10px;
+  }
+  .lede {
+    max-width: 58ch;
+    margin-top: 22px;
+    color: var(--muted);
+    font-size: 18px;
+  }
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .button {
+    min-height: 44px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.14);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    font-weight: 720;
+    font-size: 14px;
+  }
+  .button.primary {
+    color: #15100a;
+    border-color: var(--amber);
+    background: var(--amber);
+  }
+  .button.secondary {
+    color: var(--ink);
+    background: rgba(255,255,255,.055);
+  }
+  .hero-proof {
+    position: absolute;
+    z-index: 3;
+    left: 54px;
+    right: 54px;
+    bottom: 34px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .stat {
+    min-height: 86px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px;
+    background: rgba(9, 12, 18, .72);
+    backdrop-filter: blur(10px);
+    padding: 13px;
+  }
+  .stat .k {
+    display: block;
+    color: var(--quiet);
+    font: 700 11px/1.2 var(--mono);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .stat .v {
+    display: block;
+    margin-top: 8px;
+    color: var(--ink);
+    font-size: 20px;
+    font-weight: 780;
+    line-height: 1.2;
+  }
+  .stat:nth-child(1) { border-color: rgba(245,184,93,.36); }
+  .stat:nth-child(4) { border-color: rgba(101,215,159,.34); }
+
+  .section {
+    margin-top: 66px;
+  }
+  .section-head {
+    max-width: 780px;
+    margin-bottom: 22px;
+  }
+  .section-label {
+    color: var(--quiet);
+    font: 700 12px/1.2 var(--mono);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  h2 {
+    margin-top: 9px;
+    font-size: 34px;
+    line-height: 1.12;
+    letter-spacing: 0;
+  }
+  .section-head p {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 17px;
+  }
+
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .stage, .feature, .terminal, .character-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
+  }
+  .stage {
+    padding: 18px;
+  }
+  .stage .n {
+    color: var(--quiet);
+    font: 700 11px/1.2 var(--mono);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .stage h3 {
+    margin-top: 12px;
+    color: var(--amber);
+    font-size: 22px;
+  }
+  .stage p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .intro {
+    position: relative;
+  }
+  .story-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .speech, .promise, .usecase {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.016));
+  }
+  .speech {
+    min-height: 230px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .speech::after {
+    content: "";
+    position: absolute;
+    inset: auto 18px 18px auto;
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    opacity: .18;
+    background: var(--amber);
+    filter: blur(20px);
+  }
+  .reviewer-speech::after { background: var(--blue); }
+  .speaker {
+    color: var(--quiet);
+    font: 700 11px/1.2 var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .speech h3 {
+    max-width: 16ch;
+    margin-top: 12px;
+    font-size: 28px;
+    line-height: 1.08;
+  }
+  .speech p {
+    max-width: 42ch;
+    margin-top: 12px;
+    color: var(--muted);
+  }
+  .promise {
+    grid-column: 1 / -1;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 18px;
+    align-items: center;
+    border-color: rgba(245,184,93,.28);
+    background:
+      linear-gradient(120deg, rgba(245,184,93,.10), transparent 38%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.016));
+  }
+  .promise p {
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1.55;
+  }
+
+  .characters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .character-card {
+    display: grid;
+    grid-template-columns: 44% 1fr;
+    overflow: hidden;
+    min-height: 460px;
+  }
+  .character-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .character-body {
+    padding: 24px;
+    align-self: end;
+  }
+  .role {
+    color: var(--quiet);
+    font: 700 11px/1.2 var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .character-body h3 {
+    margin-top: 9px;
+    font-size: 26px;
+  }
+  .character-body p {
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .character-body .chip {
+    display: inline-flex;
+    margin-top: 18px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 999px;
+    padding: 6px 10px;
+    color: var(--ink);
+    font-size: 12px;
+    font-family: var(--mono);
+    background: rgba(255,255,255,.04);
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .feature {
+    min-height: 178px;
+    padding: 20px;
+  }
+  .feature .tag {
+    color: var(--amber);
+    font: 700 11px/1.2 var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .feature h3 {
+    margin-top: 12px;
+    font-size: 20px;
+  }
+  .feature p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .usecases {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .usecase {
+    min-height: 190px;
+    padding: 22px;
+  }
+  .usecase .tag {
+    color: var(--blue);
+    font: 700 11px/1.2 var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .usecase h3 {
+    margin-top: 14px;
+    font-size: 24px;
+    line-height: 1.12;
+  }
+  .usecase p {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .terminal {
+    padding: 22px;
+    background:
+      linear-gradient(180deg, rgba(101,215,159,.065), transparent),
+      #090d13;
+  }
+  .terminal pre {
+    overflow-x: auto;
+    color: #d5ffe8;
+    font: 15px/1.7 var(--mono);
+  }
+  .terminal .prompt { color: var(--amber); }
+  .terminal .cmd { color: var(--green); }
+  .terminal .muted { color: var(--quiet); }
+
+  .verdict {
+    border: 1px solid rgba(245,184,93,.32);
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(245,184,93,.12), transparent 42%),
+      linear-gradient(180deg, rgba(21,29,41,.82), rgba(9,13,19,.92));
+    padding: 26px;
+    color: var(--muted);
+    box-shadow: 0 18px 70px rgba(0,0,0,.30);
+  }
+  .verdict p + p { margin-top: 12px; }
+  .verdict strong { color: var(--amber); }
+  .closing-cta { margin-top: 20px; }
+
+  footer {
+    margin: 62px 0 34px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--quiet);
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 980px) {
+    .hero { min-height: 760px; }
+    .hero-copy { padding: 52px 32px 40px; }
+    h1 { font-size: 54px; }
+    .headline-sub { font-size: 24px; }
+    .hero-art .architect { right: -16%; height: 92%; }
+    .hero-art .reviewer { right: 28%; height: 86%; opacity: .48; }
+    .hero-proof { left: 32px; right: 32px; grid-template-columns: 1fr 1fr; }
+    .pipeline, .features, .usecases { grid-template-columns: 1fr 1fr; }
+    .characters { grid-template-columns: 1fr; }
+    .story-grid { grid-template-columns: 1fr; }
+    .promise { grid-template-columns: 1fr; }
+  }
+
+  /* --- motion polish --- */
+  .reveal { opacity: 0; transform: translateY(18px);
+    transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  h1 {
+    background: linear-gradient(96deg, var(--ink) 34%, var(--amber) 64%, var(--violet) 96%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: z-sheen 13s ease-in-out infinite alternate;
+  }
+  .headline-sub { -webkit-text-fill-color: var(--muted); }
+  @keyframes z-sheen { from { background-position: 0 0; } to { background-position: 100% 0; } }
+
+  .hero-art .architect { animation: z-float 9s ease-in-out infinite alternate; }
+  @keyframes z-float { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+
+  .button { transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+  .button:hover { transform: translateY(-2px); }
+  .button.primary:hover { box-shadow: 0 14px 32px -10px rgba(245,184,93,.55); }
+  .button.secondary:hover { background: rgba(255,255,255,.10); }
+
+  .stage, .feature, .usecase {
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .stage:hover, .feature:hover, .usecase:hover {
+    transform: translateY(-4px);
+    border-color: rgba(245,184,93,.40);
+    box-shadow: 0 24px 48px -24px rgba(0,0,0,.7);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal.in { opacity: 1; transform: none; transition: none; }
+    h1 { animation: none; }
+    .hero-art .architect { animation: none; }
+  }
+
+  @media (max-width: 680px) {
+    .site { width: min(100% - 24px, 1180px); }
+    .links { display: none; }
+    .hero { min-height: 860px; }
+    .hero::before {
+      background:
+        linear-gradient(180deg, rgba(7,9,13,.98) 0%, rgba(7,9,13,.76) 52%, rgba(7,9,13,.70) 100%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 80px);
+    }
+    .hero-copy { padding: 34px 20px 28px; }
+    h1 { font-size: 43px; }
+    .headline-sub { font-size: 20px; }
+    .lede { font-size: 16px; }
+    .hero-art .architect { right: -38%; height: 70%; }
+    .hero-art .reviewer { right: 18%; height: 64%; opacity: .42; }
+    .hero-proof { left: 14px; right: 14px; bottom: 14px; grid-template-columns: 1fr; }
+    .pipeline, .features, .usecases { grid-template-columns: 1fr; }
+    .character-card { grid-template-columns: 1fr; }
+    .character-card img { height: 360px; }
+    h2 { font-size: 28px; }
+    footer { display: block; }
+    footer span { display: block; margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+  <main class="site">
+    <nav class="nav" aria-label="Principal">
+      <a class="brand" href="/">
+        <span class="mark">0</span>
+        <span>zero SDD</span>
+      </a>
+      <div class="links">
+        <a href="#pipeline">Pipeline</a>
+        <a href="#personajes">Personajes</a>
+        <a href="#vender">Por qué zero</a>
+        <a href="sdd-vs-gentle.html">SDD vs gentle</a>
+      </div>
+    </nav>
+
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-art" aria-hidden="true">
+        <img class="reviewer" src="assets/veredicto-reviewer.png" alt="" />
+        <img class="architect" src="assets/zero-architect.png" alt="" />
+      </div>
+      <div class="hero-copy">
+        <p class="eyebrow">Spec-driven development para agentes de IA</p>
+        <h1 id="hero-title">zero<span class="headline-sub">el SDD que aprende</span></h1>
+        <p class="lede">
+          Convertí cualquier agente en un equipo disciplinado: primero entiende el
+          repo, después escribe specs, implementa con foco y solo declara victoria
+          cuando un reviewer adversarial lo aprueba.
+        </p>
+        <div class="cta-row">
+          <a class="button primary" href="#empezar">Instalar zero-pi</a>
+          <a class="button secondary" href="#pipeline">Cómo funciona</a>
+        </div>
+      </div>
+      <div class="hero-proof" aria-label="Métricas de zero">
+        <div class="stat"><span class="k">Versión</span><span class="v">0.1.10</span></div>
+        <div class="stat"><span class="k">Fases</span><span class="v">4</span></div>
+        <div class="stat"><span class="k">Agentes</span><span class="v">4</span></div>
+        <div class="stat"><span class="k">Tests</span><span class="v">288 OK</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="pipeline">
+      <div class="section-head">
+        <p class="section-label">Sistema operativo de una feature</p>
+        <h2>Cuatro fases. Un loop. Cero teatro.</h2>
+        <p>zero convierte una idea en una corrida verificable, con artefactos claros y un punto de corte honesto.</p>
+      </div>
+      <div class="pipeline">
+        <article class="stage">
+          <span class="n">Fase 01</span>
+          <h3>explore</h3>
+          <p>Lee el código sin tocarlo, encuentra restricciones y deja mapa del terreno.</p>
+        </article>
+        <article class="stage">
+          <span class="n">Fase 02</span>
+          <h3>plan</h3>
+          <p>Produce proposal, spec, diseño y tasks chicas con presupuesto de revisión.</p>
+        </article>
+        <article class="stage">
+          <span class="n">Fase 03</span>
+          <h3>build</h3>
+          <p>Implementa task por task, siguiendo el plan y testeando donde importa.</p>
+        </article>
+        <article class="stage">
+          <span class="n">Fase 04</span>
+          <h3>veredicto</h3>
+          <p>Revisa con contexto fresco y decide: pasa, corregir o replantear.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="personajes">
+      <div class="section-head">
+        <p class="section-label">El sistema, en dos roles</p>
+        <h2>zero piensa como dos mentes.</h2>
+        <p>Una ordena el trabajo antes de empezar. La otra no deja pasar nada sin verificar.</p>
+      </div>
+      <div class="characters">
+        <article class="character-card">
+          <img src="assets/zero-architect.png" alt="Personaje anime original Zero Architect junto a paneles de código y documentos de especificación" />
+          <div class="character-body">
+            <span class="role">Zero Architect</span>
+            <h3>Planifica antes de tocar el repo.</h3>
+            <p>Ordena contexto, specs y tasks chicas antes de escribir una línea. El agente trabaja con un mapa, no a ciegas.</p>
+            <span class="chip">explore → plan</span>
+          </div>
+        </article>
+        <article class="character-card">
+          <img src="assets/veredicto-reviewer.png" alt="Personaje anime original Veredicto Reviewer revisando paneles de tests y resultados" />
+          <div class="character-body">
+            <span class="role">Veredicto Reviewer</span>
+            <h3>No firma nada sin evidencia.</h3>
+            <p>El crítico del pipeline. Corta los loops infinitos, manda a rebuild o replan, y solo firma lo que verificó.</p>
+            <span class="chip">build → veredicto</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="vender">
+      <div class="section-head">
+        <p class="section-label">Por qué alguien lo instala</p>
+        <h2>zero te da control sobre el trabajo de agentes.</h2>
+        <p>El beneficio no es “más IA”. Es menos improvisación, menos loops ciegos y más confianza para delegar features completas.</p>
+      </div>
+      <div class="features">
+        <article class="feature">
+          <span class="tag">Honestidad</span>
+          <h3>Cap duro</h3>
+          <p>Si no se verifica dentro del límite, zero frena y declara la corrida como no verificada.</p>
+        </article>
+        <article class="feature">
+          <span class="tag">Memoria</span>
+          <h3>Run-memory loop</h3>
+          <p>Guarda qué falló, dónde y por qué, para que la próxima corrida arranque con aprendizaje.</p>
+        </article>
+        <article class="feature">
+          <span class="tag">Ruteo</span>
+          <h3>Autotune v2</h3>
+          <p>Ajusta el modelo por fase según resultados reales, no por intuición estática.</p>
+        </article>
+        <article class="feature">
+          <span class="tag">Specs</span>
+          <h3>Canónicas y acumulativas</h3>
+          <p>Las decisiones viven en <code>.sdd/specs/</code>, evolucionan con deltas y se archivan con audit trail.</p>
+        </article>
+        <article class="feature">
+          <span class="tag">Continuidad</span>
+          <h3>Corridas resumibles</h3>
+          <p><code>/forge --continue</code> retoma desde la fase o task incompleta, sin reiniciar el razonamiento.</p>
+        </article>
+        <article class="feature">
+          <span class="tag">Compatibilidad</span>
+          <h3>Claude, pi, OpenCode, Codex</h3>
+          <p>La misma disciplina se instala en distintos agentes mediante adapters.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="empezar">
+      <div class="section-head">
+        <p class="section-label">Instalación</p>
+        <h2>Arrancá una feature con SDD real.</h2>
+      </div>
+      <div class="terminal" role="region" aria-label="Comandos de instalación">
+<pre><span class="prompt">$</span> <span class="cmd">pi install npm:@gonrocca/zero-pi</span>
+<span class="prompt">$</span> <span class="cmd">pi</span>
+<span class="prompt">></span> <span class="cmd">/forge "agregá login con OAuth"</span>
+
+<span class="muted"># También disponible para Claude Code, OpenCode y Codex.</span></pre>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="verdict">
+        <p><strong>zero no promete un agente perfecto.</strong> Promete algo mejor: que trabaje con proceso, deje evidencia, y admita cuando todavía no verificó.</p>
+        <p>Proceso antes que magia. Pruebas antes que “terminé”. Eso es lo que instalás.</p>
+        <div class="cta-row closing-cta">
+          <a class="button primary" href="#empezar">Probar zero</a>
+          <a class="button secondary" href="sdd-vs-gentle.html">Ver la comparativa</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>zero SDD · v0.1.10 · MIT · Gonzalo Rocca</div>
+      <span><a href="https://www.npmjs.com/package/@gonrocca/zero-pi">npm</a> · <a href="sdd-vs-gentle.html">comparativa SDD</a> · <a href="cortex-vs-engram.html">memoria</a> · <a href="https://ceroclawd.com">CeroClawd</a></span>
+    </footer>
+  </main>
+  <script>
+  (function () {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var sel = '.eyebrow, h1, .lede, .cta-row, .hero-proof .stat, .section-head,'
+      + ' .stage, .speech, .promise, .usecase, .character-card, .feature, .terminal, .verdict';
+    var els = [].slice.call(document.querySelectorAll(sel));
+    els.forEach(function (el) { el.classList.add('reveal'); });
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var sibs = [].slice.call(e.target.parentNode.children)
+          .filter(function (n) { return n.classList.contains('reveal'); });
+        var i = Math.max(0, Math.min(sibs.indexOf(e.target), 5));
+        e.target.style.transitionDelay = (i * 70) + 'ms';
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -7% 0px' });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+  </script>
+</body>
+</html>

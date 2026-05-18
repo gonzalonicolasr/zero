@@ -1,0 +1,36 @@
+{
+  "name": "zero",
+  "version": "0.1.0",
+  "description": "zero — an integrator that supercharges AI coding agents (Claude Code, pi) with a spec-driven development workflow, skill auto-learning, and shared memory.",
+  "type": "module",
+  "bin": {
+    "zero": "./src/cli.ts"
+  },
+  "files": [
+    "src",
+    "packages/zero-pi",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test --experimental-strip-types",
+    "dev": "node --experimental-strip-types src/cli.ts"
+  },
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "keywords": [
+    "ai-coding-agent",
+    "integrator",
+    "sdd",
+    "spec-driven-development",
+    "claude-code",
+    "pi",
+    "cli"
+  ],
+  "author": "Gonzalo Rocca",
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^1.4.0"
+  }
+}

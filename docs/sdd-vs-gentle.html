@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SDD - zero vs gentle-ai</title>
+<style>
+  :root {
+    --bg: #090a0d;
+    --bg-2: #0e1117;
+    --surface: #141820;
+    --surface-2: #191f2a;
+    --surface-3: #10141b;
+    --border: #2b313d;
+    --border-soft: #202631;
+    --text: #eef1f6;
+    --muted: #a5adbb;
+    --quiet: #747d8d;
+    --amber: #f3b562;     /* zero */
+    --blue: #7fb2ff;      /* gentle */
+    --green: #64d39b;
+    --red: #f17383;
+    --yellow: #e6c36a;
+    --shadow: 0 24px 80px rgba(0,0,0,.32);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    min-height: 100vh;
+    background:
+      linear-gradient(135deg, rgba(243,181,98,.08), transparent 34%),
+      linear-gradient(225deg, rgba(127,178,255,.07), transparent 32%),
+      linear-gradient(180deg, var(--bg), var(--bg-2) 42%, var(--bg));
+    color: var(--text);
+    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 46px 28px 86px; }
+  code, .mono {
+    font-family: "SF Mono", "JetBrains Mono", Consolas, monospace;
+    font-size: 0.86em;
+  }
+  code {
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    background: rgba(255,255,255,.035);
+    padding: .04rem .34rem;
+  }
+  b { color: var(--text); }
+  a { color: var(--amber); text-underline-offset: 3px; }
+
+  /* hero */
+  .hero {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.055), rgba(255,255,255,.018)),
+      linear-gradient(180deg, rgba(20,24,32,.95), rgba(13,16,22,.95));
+    box-shadow: var(--shadow);
+    padding: 34px;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(243,181,98,.16), transparent 34%, transparent 66%, rgba(127,178,255,.13)),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 104px);
+    mask-image: linear-gradient(180deg, rgba(0,0,0,.7), transparent 78%);
+  }
+  .hero > * { position: relative; }
+  .eyebrow {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  h1 {
+    max-width: 980px;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 1.02;
+    margin: 14px 0 18px;
+    font-weight: 760;
+  }
+  h1 .z { color: var(--amber); }
+  h1 .g { color: var(--blue); }
+  .lede { color: var(--muted); font-size: 17px; max-width: 78ch; }
+  .hero-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 26px;
+  }
+  .metric {
+    min-height: 104px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(9,10,13,.42);
+    padding: 15px;
+  }
+  .metric .k {
+    display: block;
+    color: var(--quiet);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+  .metric .v {
+    display: block;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 720;
+    line-height: 1.25;
+  }
+  .metric.zero { border-color: rgba(243,181,98,.36); }
+  .metric.gentle { border-color: rgba(127,178,255,.32); }
+  .metric.gap { border-color: rgba(230,195,106,.34); }
+
+  .ecosystem {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 28px 0 8px;
+  }
+  .eco {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015));
+  }
+  .eco h3 {
+    font-size: 13px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+  .eco.mine h3 { color: var(--amber); }
+  .eco.alan h3 { color: var(--blue); }
+  .eco p { color: var(--muted); font-size: 14px; }
+  .eco .pieces { margin-top: 8px; font-size: 13.5px; }
+  .eco .pieces b { color: var(--text); }
+
+  h2 {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 24px;
+    margin: 58px 0 7px;
+    font-weight: 720;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  h2 .num {
+    color: var(--quiet);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .12em;
+  }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+
+  /* pipelines */
+  .pipe {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(20,24,32,.68);
+    padding: 18px;
+    margin: 16px 0 8px;
+  }
+  .pipe .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: 12px;
+  }
+  .pipe.zero .label { color: var(--amber); }
+  .pipe.gentle .label { color: var(--blue); }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+  .step {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 11px;
+    background: var(--surface-3);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .pipe.zero .step { border-color: rgba(243,181,98,.34); }
+  .pipe.gentle .step { border-color: rgba(127,178,255,.30); }
+  .step .k { color: var(--muted); font-size: 11px; display: block; }
+  .arrow { color: var(--quiet); align-self: center; font-size: 12px; }
+  .pipe-note { color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+  /* table */
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(20,24,32,.58);
+    margin: 18px 0;
+  }
+  table {
+    width: 100%;
+    min-width: 820px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: 0; }
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #111722;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  thead th.col-z { color: var(--amber); }
+  thead th.col-g { color: var(--blue); }
+  td.dim {
+    color: var(--text);
+    width: 22%;
+    font-weight: 690;
+    background: rgba(255,255,255,.018);
+  }
+  tbody tr:hover { background: rgba(255,255,255,.025); }
+  .mk { font-weight: 700; margin-right: 5px; }
+  .yes { color: var(--green); }
+  .no  { color: var(--red); }
+  .mid { color: var(--yellow); }
+
+  /* cards */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 17px 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+  }
+  .card.win { border-left: 3px solid var(--green); }
+  .card.gap { border-left: 3px solid var(--yellow); }
+  .card h4 { font-size: 16px; margin-bottom: 6px; line-height: 1.3; }
+  .card p { color: var(--muted); font-size: 13.5px; }
+  .card .tag {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--quiet);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 6px;
+  }
+  ul { color: var(--muted); }
+  li + li { margin-top: 5px; }
+
+  .bottom {
+    border: 1px solid rgba(243,181,98,.28);
+    border-radius: 8px;
+    padding: 24px;
+    background:
+      linear-gradient(135deg, rgba(243,181,98,.11), transparent 42%),
+      linear-gradient(180deg, rgba(20,24,32,.92), rgba(14,17,23,.92));
+    margin-top: 22px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.24);
+  }
+  .bottom p { margin-bottom: 10px; }
+  .bottom p:last-child { margin-bottom: 0; }
+  .bottom b.z { color: var(--amber); }
+  .bottom b.g { color: var(--blue); }
+
+  .foot {
+    margin-top: 48px;
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+  }
+  .foot code { color: var(--text); }
+  @media (max-width: 720px) {
+    .wrap { padding: 22px 14px 64px; }
+    .hero { padding: 22px; }
+    .hero-strip, .ecosystem, .cards { grid-template-columns: 1fr; }
+    h1 { font-size: 34px; }
+    td.dim { width: auto; }
+    .steps { gap: 7px; }
+    .arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <p class="eyebrow">Comparativa de ecosistemas · Fase 1 — el SDD</p>
+    <h1><span class="z">zero</span> SDD &nbsp;vs&nbsp; <span class="g">gentle-ai</span> SDD</h1>
+    <p class="lede">
+      Dos enfoques de spec-driven development para agentes de IA. gentle-ai (de Alan
+      / Gentleman Programming) y zero comparten la misma intuición — no improvisar,
+      trabajar en fases — pero la resuelven distinto. Esto compara <b>solo el SDD</b>.
+      La memoria (Cortex vs engram) va en la fase 2.
+    </p>
+
+    <div class="hero-strip" aria-label="Resumen ejecutivo">
+      <div class="metric zero">
+        <span class="k">zero gana en</span>
+        <span class="v">loop cerrado, veredicto y autotune</span>
+      </div>
+      <div class="metric gentle">
+        <span class="k">gentle gana en</span>
+        <span class="v">TDD estricto y cobertura de agentes</span>
+      </div>
+      <div class="metric zero">
+        <span class="k">roadmap</span>
+        <span class="v">v0.1.6 → v0.1.10 ya ejecutada</span>
+      </div>
+      <div class="metric gap">
+        <span class="k">gap honesto</span>
+        <span class="v">evidencia TDD más dura</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="ecosystem">
+    <div class="eco alan">
+      <h3>El ecosistema de Alan</h3>
+      <p>Bloques componibles — cada pieza hace una cosa y se enchufan.</p>
+      <p class="pieces"><b>gentle-ai / gentle-pi</b> — harness SDD + registry de skills · <b>engram</b> — memoria persistente (Go + SQLite/FTS5)</p>
+    </div>
+    <div class="eco mine">
+      <h3>El ecosistema zero</h3>
+      <p>Un workflow con la memoria y el aprendizaje cableados adentro.</p>
+      <p class="pieces"><b>zero / zero-pi</b> — pipeline SDD + skill-loop + run-memory + autotune · <b>Cortex</b> — memoria MCP cross-session</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">01</span> Qué es cada SDD</h2>
+  <p class="sub">El mismo objetivo, dos filosofías.</p>
+
+  <div class="cards">
+    <div class="card">
+      <span class="tag" style="color:var(--blue)">gentle-ai SDD</span>
+      <h4>Un ciclo de vida de especificación</h4>
+      <p>10 fases sobre un modelo de artefactos estilo OpenSpec: specs canónicas
+      que evolucionan con deltas (ADDED/MODIFIED/REMOVED), sync y archivo con
+      audit trail. TDD estricto, presupuesto de revisión. Es un <b>sistema de
+      documentación viva del proceso</b>.</p>
+    </div>
+    <div class="card">
+      <span class="tag" style="color:var(--amber)">zero SDD</span>
+      <h4>Un loop de feedback ajustado</h4>
+      <p>4 fases con un orquestador que cuenta rondas y tiene un <b>cap duro</b>,
+      un <code>veredicto</code> adversarial obligatorio, y memoria de corridas
+      que alimenta un tuner de modelos. Es un <b>sistema que se auto-mejora</b>
+      con cada corrida.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">02</span> Los pipelines, lado a lado</h2>
+  <p class="sub">gentle granular y artefactado · zero compacto y con loop de verificación.</p>
+
+  <div class="pipe gentle">
+    <div class="label">gentle-ai — 10 fases (chain <span class="mono">sdd-full</span>)</div>
+    <div class="steps">
+      <div class="step">init</div><span class="arrow">→</span>
+      <div class="step">explore</div><span class="arrow">→</span>
+      <div class="step">proposal</div><span class="arrow">→</span>
+      <div class="step">spec</div><span class="arrow">→</span>
+      <div class="step">design</div><span class="arrow">→</span>
+      <div class="step">tasks</div><span class="arrow">→</span>
+      <div class="step">apply</div><span class="arrow">→</span>
+      <div class="step">verify</div><span class="arrow">→</span>
+      <div class="step">sync</div><span class="arrow">→</span>
+      <div class="step">archive</div>
+    </div>
+    <p class="pipe-note">spec ∥ design pueden ir en paralelo. <b>verify</b> reporta
+    pero no arregla → el orquestador rutea de vuelta a <b>apply</b>. Sin cap de
+    rondas dentro del pipeline.</p>
+  </div>
+
+  <div class="pipe zero" style="margin-top:24px">
+    <div class="label">zero — 4 fases (comando <span class="mono">/forge</span>)</div>
+    <div class="steps">
+      <div class="step"><span class="k">investiga</span>explore</div><span class="arrow">→</span>
+      <div class="step"><span class="k">requisitos+diseño+tasks</span>plan</div><span class="arrow">→</span>
+      <div class="step"><span class="k">implementa</span>build</div><span class="arrow">→</span>
+      <div class="step"><span class="k">review adversarial</span>veredicto</div>
+    </div>
+    <p class="pipe-note"><b>veredicto</b> devuelve <code>pasa</code> ·
+    <code>corregir</code> (re-build) · <code>replantear</code> (re-plan). El
+    orquestador cuenta rondas build↔veredicto y <b>frena en el cap</b> con
+    "no verificado" — nunca miente un éxito.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">03</span> Comparativa punto por punto</h2>
+  <p class="sub">
+    <span class="mk yes">✓</span>fortaleza ·
+    <span class="mk mid">~</span>parcial / con asterisco ·
+    <span class="mk no">✗</span>ausente
+  </p>
+
+  <div class="table-scroll">
+  <table>
+    <thead>
+      <tr><th>Dimensión</th><th class="col-g">gentle-ai SDD</th><th class="col-z">zero SDD</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="dim">Fases</td>
+        <td>10 — init→explore→proposal→spec→design→tasks→apply→verify→sync→archive</td>
+        <td>4 — explore→plan→build→veredicto</td>
+      </tr>
+      <tr>
+        <td class="dim">Entrada</td>
+        <td>chains (<span class="mono">sdd-full</span>) + comandos por fase + lenguaje natural</td>
+        <td>un comando — <span class="mono">/forge &lt;feature&gt;</span></td>
+      </tr>
+      <tr>
+        <td class="dim">Artefactos de spec</td>
+        <td><span class="mk yes">✓</span>modelo OpenSpec — specs canónicas, deltas ADDED/MODIFIED/REMOVED, sync, archivo con audit trail</td>
+        <td><span class="mk yes">✓</span>modelo propio — store <span class="mono">.sdd/specs/</span>, deltas ADDED/MODIFIED/REMOVED, <span class="mono">/zero-sync</span>, <span class="mono">.sdd/archive/</span> <i>(v0.1.8)</i></td>
+      </tr>
+      <tr>
+        <td class="dim">Cap de iteración</td>
+        <td><span class="mk no">✗</span>ninguno dentro del pipeline — verify↔apply puede loopear (cap solo en tooling companion)</td>
+        <td><span class="mk yes">✓</span>cap duro de rondas + estado terminal "no verificado"</td>
+      </tr>
+      <tr>
+        <td class="dim">Review adversarial</td>
+        <td><span class="mk mid">~</span><span class="mono">sdd-verify</span> es un ejecutor más, no fresh-context/blind. Lo adversarial (<span class="mono">judgment-day</span>) está aparte</td>
+        <td><span class="mk yes">✓</span><span class="mono">veredicto</span> es una fase obligatoria, perspectiva fresca, sin <code>pasa</code> no hay éxito</td>
+      </tr>
+      <tr>
+        <td class="dim">Modelo de veredicto</td>
+        <td>verify emite CRITICAL/WARNING/SUGGESTION → orquestador rutea a apply</td>
+        <td>3 veredictos — <code>pasa</code> / <code>corregir</code> (re-build) / <code>replantear</code> (re-plan)</td>
+      </tr>
+      <tr>
+        <td class="dim">Rigor TDD</td>
+        <td><span class="mk yes">✓</span>estricto — RED→GREEN→TRIANGULATE→REFACTOR, tabla de evidencia, auditoría de calidad de asserts</td>
+        <td><span class="mk mid">~</span>liviano — "test-first donde sea práctico"</td>
+      </tr>
+      <tr>
+        <td class="dim">Carga de revisión</td>
+        <td><span class="mk yes">✓</span>presupuesto de 400 líneas, Review Workload Forecast, estrategia de PR encadenado</td>
+        <td><span class="mk yes">✓</span>Review Workload Forecast — presupuesto de 400 líneas por task en la fase plan <i>(v0.1.6)</i>. Sin PR encadenado</td>
+      </tr>
+      <tr>
+        <td class="dim">Ruteo de modelos</td>
+        <td>por agente, <b>estático</b> — <span class="mono">/gentle:models</span> + nivel de "thinking"</td>
+        <td>por fase, <b>adaptativo</b> — autotune v2 aprende por fase (<code>corregir</code>→build, <code>replantear</code>→plan) y ajusta solo el culpable</td>
+      </tr>
+      <tr>
+        <td class="dim">Memoria en el loop</td>
+        <td>store de artefactos — guarda los archivos de fase en engram; resume por topic key</td>
+        <td>loop de aprendizaje — recuerda <b>resultados</b> de corridas pasadas y alimenta el autotune</td>
+      </tr>
+      <tr>
+        <td class="dim">Paralelismo</td>
+        <td><span class="mk mid">~</span>secuencial single-writer; el paralelo lo aporta <span class="mono">pi-subagents</span> (companion)</td>
+        <td><span class="mk no">✗</span>secuencial</td>
+      </tr>
+      <tr>
+        <td class="dim">Agentes soportados</td>
+        <td><span class="mk yes">✓</span>~10 — Claude Code, Cursor, Gemini, OpenCode, Copilot, Kiro…</td>
+        <td><span class="mk mid">~</span>4 — Claude Code, pi, OpenCode, Codex</td>
+      </tr>
+      <tr>
+        <td class="dim">Resumir una corrida</td>
+        <td><span class="mk yes">✓</span><span class="mono">/sdd-continue</span> — sigue por la próxima fase lista</td>
+        <td><span class="mk yes">✓</span><span class="mono">/forge --continue</span> — retoma desde la fase/task incompleta <i>(v0.1.7)</i></td>
+      </tr>
+      <tr>
+        <td class="dim">Respaldo en código</td>
+        <td>merge de deltas + guardrails OpenSpec en TS con tests; comportamiento de fase prompt-driven</td>
+        <td>installer + autotune + motor de merge de specs (<span class="mono">spec-merge.ts</span>) en TS con tests; comportamiento de fase prompt-driven</td>
+      </tr>
+      <tr>
+        <td class="dim">Auto-contenido</td>
+        <td><span class="mk mid">~</span>la experiencia completa pide 6–7 paquetes companion</td>
+        <td><span class="mk yes">✓</span>pipeline + skills + memoria + autotune en un paquete</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">04</span> Lo que zero mejora sobre gentle</h2>
+  <p class="sub">Dónde el enfoque de zero es genuinamente más estricto o más vivo.</p>
+
+  <div class="cards">
+    <div class="card win">
+      <span class="tag">honestidad</span>
+      <h4>Cap duro + "no verificado"</h4>
+      <p>El orquestador de zero cuenta rondas build↔veredicto y frena en el cap
+      admitiendo que no se verificó. El SDD de gentle no tiene cap adentro del
+      pipeline — verify↔apply puede girar sin límite.</p>
+    </div>
+    <div class="card win">
+      <span class="tag">verificación</span>
+      <h4>Veredicto adversarial obligatorio</h4>
+      <p>En zero el <code>veredicto</code> es una fase del pipeline, con perspectiva
+      fresca, y la corrida no puede declararse exitosa sin un <code>pasa</code>. En
+      gentle el review adversarial real está bolt-on (skill <span class="mono">judgment-day</span>), no garantizado.</p>
+    </div>
+    <div class="card win">
+      <span class="tag">ruteo</span>
+      <h4>Re-plan vs re-build (3 veredictos)</h4>
+      <p><code>replantear</code> distingue "el plan estaba mal" de "el build estaba
+      mal" y vuelve a la fase correcta. gentle solo rutea CRITICAL → apply: siempre
+      asume que el culpable es la implementación.</p>
+    </div>
+    <div class="card win">
+      <span class="tag">aprendizaje</span>
+      <h4>Memoria que es un loop, no un store</h4>
+      <p>zero recuerda <b>resultados</b> — qué se rompió, qué plan falló — y la
+      próxima corrida arranca de ahí. La memoria de gentle guarda los <b>artefactos</b>
+      de fase (resumir/persistir); es almacenamiento, no un loop de feedback.</p>
+    </div>
+    <div class="card win">
+      <span class="tag">único</span>
+      <h4>Autotune — ruteo de modelos adaptativo</h4>
+      <p>zero aprende qué modelo le rinde a cada fase desde los pass-rates reales y
+      ajusta el perfil solo. gentle tiene ruteo por agente, pero <b>estático</b> —
+      lo configurás una vez. Nadie más tiene el ajuste adaptativo.</p>
+    </div>
+    <div class="card win">
+      <span class="tag">simplicidad</span>
+      <h4>Auto-contenido y compacto</h4>
+      <p>zero-pi trae pipeline + skill-loop + run-memory + autotune en un paquete y
+      4 fases. La experiencia completa de gentle-pi pide 6–7 companions y el camino
+      in-SDD son 10 fases.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">05</span> Lo que zero cerró — y lo que falta</h2>
+  <p class="sub">Esta comparativa fue la hoja de ruta de zero. Casi toda — ya ejecutada.</p>
+
+  <div class="card win" style="margin-bottom:14px">
+    <span class="tag">✅ cerrado — programa SDD vs gentle-ia, zero-pi v0.1.6 → v0.1.10</span>
+    <ul style="margin:10px 0 0 18px; color:var(--muted); font-size:13.5px; line-height:1.75">
+      <li><b>Specs canónicas que evolucionan</b> → <span class="mono">canonical-specs</span>: store <span class="mono">.sdd/specs/</span>, deltas, <span class="mono">/zero-sync</span>, archivo con audit trail (v0.1.8)</li>
+      <li><b>Conciencia de carga de revisión</b> → Review Workload Forecast, presupuesto de 400 líneas/task en la fase plan (v0.1.6)</li>
+      <li><b>Granularidad de artefactos</b> → la fase plan emite proposal / spec / design por separado, + el <span class="mono">.sdd/archive/</span> (v0.1.8)</li>
+      <li><b>Resumir una corrida</b> → <span class="mono">/forge --continue</span>, retoma desde la fase/task incompleta (v0.1.7)</li>
+      <li><b>Trigger por lenguaje natural</b> → skill <span class="mono">sdd-routing</span>, arranca SDD desde "hacelo con sdd" (v0.1.9)</li>
+      <li><b>Menos prompt, más código</b> → el motor de merge de specs vive en TS testeado (<span class="mono">spec-merge.ts</span>)</li>
+    </ul>
+  </div>
+
+  <p class="sub" style="margin:18px 0 12px">Lo honesto: dos cosas que gentle todavía hace mejor.</p>
+  <div class="cards">
+    <div class="card gap">
+      <span class="tag">gap real que queda</span>
+      <h4>TDD estricto con evidencia</h4>
+      <p>gentle exige RED→GREEN→TRIANGULATE→REFACTOR con tabla de evidencia y
+      auditoría de calidad de asserts (prohíbe tautologías, smoke tests, tests
+      mock-heavy). El build de zero sigue en "test-first donde sea práctico" — el
+      único hueco de disciplina que no cerramos.</p>
+    </div>
+    <div class="card gap">
+      <span class="tag">alcance</span>
+      <h4>Amplitud de agentes</h4>
+      <p>gentle-ai instala en ~10 agentes; zero llega a 4 (Claude Code, pi,
+      OpenCode, Codex). No es disciplina — es cobertura. Sumar agentes es mecánico:
+      un adapter por agente.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">06</span> El veredicto</h2>
+  <div class="bottom">
+    <p><b class="g">gentle-ai</b> sigue siendo el SDD más maduro como ciclo de vida
+    de especificación. Pero zero <b>cerró el hueco estructural</b>: ahora tiene
+    specs canónicas que evolucionan, presupuesto de revisión, corridas resumibles y
+    artefactos granulares — todo lo que esta comparativa marcó como hoja de ruta.</p>
+    <p>Y lo propio de <b class="z">zero</b> sigue intacto: el cap duro, el veredicto
+    adversarial obligatorio, el run-memory y el autotune — ahora v2, con atribución
+    de modelos por fase. gentle no tiene nada de eso.</p>
+    <p>Queda un gap honesto — el <b>rigor TDD</b>. Pero la jugada salió: zero adoptó
+    la disciplina de spec de gentle <b>sin perder</b> su loop de aprendizaje. La
+    diferencia de fondo no cambió — gentle es el mejor sistema de <b>documentación
+    de proceso</b>; zero, el mejor sistema <b>auto-mejorable</b>.</p>
+  </div>
+
+  <p class="foot">
+    Fase 1 de 2 — comparativa del SDD. Actualizada tras shippear el programa de
+    mejoras (zero-pi <b>v0.1.10</b>). <b>Fase 2:</b> memoria — ver
+    <code>cortex-vs-engram.html</code>.<br>
+    Fuentes: <code>github.com/Gentleman-Programming/gentle-pi</code> (v0.3.6) ·
+    <code>gentle-ai</code> · <code>nicobailon/pi-subagents</code>. zero SDD —
+    <code>packages/zero-pi/prompts/</code>, <code>docs/zero-sdd-roadmap.md</code>.
+  </p>
+
+</div>
+</body>
+</html>

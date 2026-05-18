@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Memoria — Cortex vs engram</title>
+<style>
+  :root {
+    --bg: #0b0b0f;
+    --surface: #15151c;
+    --surface-2: #1c1c25;
+    --border: #28282f;
+    --text: #e6e6ec;
+    --muted: #9a9aa8;
+    --amber: #ffb454;     /* Cortex (ours) */
+    --purple: #9d7cd8;
+    --blue: #7aa2f7;      /* engram (Alan) */
+    --green: #5ed4a0;
+    --red: #f7768e;
+    --yellow: #e0af68;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 28px 96px; }
+  code, .mono { font-family: "SF Mono", "JetBrains Mono", Consolas, monospace; font-size: 0.86em; }
+
+  .eyebrow { color: var(--muted); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { font-size: 38px; line-height: 1.15; margin: 12px 0 16px; font-weight: 700; }
+  h1 .z { color: var(--amber); }
+  h1 .g { color: var(--blue); }
+  .lede { color: var(--muted); font-size: 17px; max-width: 70ch; }
+
+  .ecosystem { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 32px 0 8px; }
+  .eco { border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; background: var(--surface); }
+  .eco h3 { font-size: 14px; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; }
+  .eco.mine h3 { color: var(--amber); }
+  .eco.alan h3 { color: var(--blue); }
+  .eco p { color: var(--muted); font-size: 14px; }
+  .eco .pieces { margin-top: 8px; font-size: 13.5px; }
+  .eco .pieces b { color: var(--text); }
+
+  h2 {
+    font-size: 22px; margin: 56px 0 6px; font-weight: 650;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h2 .num { color: var(--muted); font-weight: 400; margin-right: 10px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  thead th.col-z { color: var(--amber); }
+  thead th.col-g { color: var(--blue); }
+  td.dim { color: var(--muted); width: 21%; }
+  tbody tr:hover { background: var(--surface); }
+  .mk { font-weight: 700; margin-right: 5px; }
+  .yes { color: var(--green); }
+  .no  { color: var(--red); }
+  .mid { color: var(--yellow); }
+
+  /* record shapes */
+  .recs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0 8px; }
+  .rec { border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; background: var(--surface); }
+  .rec.g { border-top: 3px solid var(--blue); }
+  .rec.z { border-top: 3px solid var(--amber); }
+  .rec h4 { font-size: 14px; margin-bottom: 10px; }
+  .rec.g h4 { color: var(--blue); }
+  .rec.z h4 { color: var(--amber); }
+  .rec .field { font-family: "SF Mono", Consolas, monospace; font-size: 12.5px; padding: 3px 0; color: var(--muted); }
+  .rec .field b { color: var(--text); }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+  .card { border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; background: var(--surface); }
+  .card.win { border-left: 3px solid var(--green); }
+  .card.gap { border-left: 3px solid var(--yellow); }
+  .card h4 { font-size: 15px; margin-bottom: 5px; }
+  .card p { color: var(--muted); font-size: 13.5px; }
+  .card .tag { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+  .bottom {
+    border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px;
+    background: linear-gradient(135deg, #16131a, #1a1712); margin-top: 22px;
+  }
+  .bottom p { margin-bottom: 10px; }
+  .bottom p:last-child { margin-bottom: 0; }
+  .bottom b.z { color: var(--amber); }
+  .bottom b.g { color: var(--blue); }
+
+  .foot { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); padding-top: 18px; }
+  .foot code { color: var(--text); }
+  @media (max-width: 720px) {
+    .ecosystem, .cards, .recs { grid-template-columns: 1fr; }
+    h1 { font-size: 30px; }
+    td.dim { width: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Comparativa de ecosistemas · Fase 2 — la memoria</p>
+  <h1><span class="z">Cortex</span> &nbsp;vs&nbsp; <span class="g">engram</span></h1>
+  <p class="lede">
+    Las dos memorias persistentes para agentes de IA. engram (de Alan / Gentleman
+    Programming) y Cortex resuelven el mismo problema — que el agente no olvide
+    entre sesiones. A diferencia del SDD, acá <b>no hay innovación paralela</b>:
+    el propio <span class="mono">package.json</span> de Cortex dice
+    <i>"inspired by Engram, built for automation"</i>. Cortex es una
+    reimplementación. Esto compara honestamente las dos.
+  </p>
+
+  <div class="ecosystem">
+    <div class="eco alan">
+      <h3>El ecosistema de Alan</h3>
+      <p>Bloques componibles, productos standalone.</p>
+      <p class="pieces"><b>engram</b> — memoria persistente (binario Go) · <b>gentle-ai / gentle-pi</b> — harness SDD + skills</p>
+    </div>
+    <div class="eco mine">
+      <h3>El ecosistema zero</h3>
+      <p>Una plataforma con la memoria como servicio adentro.</p>
+      <p class="pieces"><b>Cortex</b> (memoria) — capa del workspace · <b>zero / zero-pi</b> — pipeline SDD + autotune · <b>CeroClawd</b> — la plataforma</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">01</span>Qué es cada uno</h2>
+  <p class="sub">Mismo problema, dos posturas — y una de ellas nació de la otra.</p>
+
+  <div class="cards">
+    <div class="card">
+      <span class="tag" style="color:var(--blue)">engram · v1.15.13 · 83 releases</span>
+      <h4>Un producto de memoria, maduro y standalone</h4>
+      <p>Un binario Go de cero dependencias — <i>"set it up once and forget about
+      it"</i>. SQLite + FTS5, y cuatro interfaces (MCP, HTTP, CLI, TUI). Local-first,
+      sync por git, cloud self-host opcional. Pensado para <b>instalarse en
+      cualquier agente</b> y desaparecer.</p>
+    </div>
+    <div class="card">
+      <span class="tag" style="color:var(--amber)">Cortex · "memoria" · v1.1.0</span>
+      <h4>Una capa de memoria para una plataforma</h4>
+      <p>Una reimplementación en Node.js, "inspirada en Engram, construida para
+      automatización". SQLite + FTS5 también — pero <b>multi-tenant</b> (cada fila
+      lleva <span class="mono">workspace_id</span>) y servida vía un gateway en
+      CeroClawd. No es un producto suelto: es la memoria del ecosistema zero.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">02</span>Cómo se ve una memoria</h2>
+  <p class="sub">Las dos son tipadas y estructuradas — Cortex copió el molde y le sumó campos.</p>
+
+  <div class="recs">
+    <div class="rec g">
+      <h4>engram — observation</h4>
+      <div class="field"><b>type</b> · decision|architecture|bugfix|pattern|config|discovery|learning</div>
+      <div class="field"><b>title</b> · verbo + objeto</div>
+      <div class="field"><b>content</b> · What / Why / Where / Learned</div>
+      <div class="field"><b>project</b> · <b>scope</b> project|personal</div>
+      <div class="field"><b>topic_key</b> · upsert de temas que evolucionan</div>
+      <div class="field"><b>relations[]</b> · supersedes / conflicts_with / …</div>
+    </div>
+    <div class="rec z">
+      <h4>Cortex — memory</h4>
+      <div class="field"><b>type</b> · decision|discovery|bug_fix|pattern|preference|<br>&nbsp;&nbsp;architecture|config|lesson|session_summary|context</div>
+      <div class="field"><b>title</b> · verbo + objeto</div>
+      <div class="field"><b>what / why / where_at / learned</b> · 4 campos</div>
+      <div class="field"><b>project</b> · <b>scope</b> project|shared <i>(derivado del type)</i></div>
+      <div class="field"><b>topic_key</b> · upsert · <b>relevance_score</b> · decae</div>
+      <div class="field" style="color:var(--red)">— sin relaciones entre memorias —</div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:10px">
+    Casi el mismo modelo. Las dos diferencias que importan: Cortex deriva el
+    <span class="mono">scope</span> del tipo (y con eso comparte entre proyectos) y
+    le da a cada memoria un <span class="mono">relevance_score</span> que decae —
+    engram no tiene ni una ni la otra. A cambio, engram <b>vincula memorias entre
+    sí</b> (supersedes, conflicts_with) — Cortex no.
+  </p>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">03</span>Comparativa punto por punto</h2>
+  <p class="sub">
+    <span class="mk yes">✓</span>fortaleza ·
+    <span class="mk mid">~</span>parcial ·
+    <span class="mk no">✗</span>ausente
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Dimensión</th><th class="col-g">engram</th><th class="col-z">Cortex</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="dim">Runtime</td>
+        <td>binario Go, 0 dependencias — un archivo estático</td>
+        <td>Node.js ESM, 2 deps (<span class="mono">better-sqlite3</span>, MCP SDK)</td>
+      </tr>
+      <tr>
+        <td class="dim">Storage</td>
+        <td>SQLite WAL + FTS5</td>
+        <td>SQLite WAL + FTS5 — mismo enfoque</td>
+      </tr>
+      <tr>
+        <td class="dim">Interfaces</td>
+        <td><span class="mk yes">✓</span>MCP · HTTP · CLI · <b>TUI</b></td>
+        <td><span class="mk mid">~</span>MCP (stdio) · HTTP REST · CLI — sin TUI</td>
+      </tr>
+      <tr>
+        <td class="dim">Modelo de memoria</td>
+        <td>observation tipada (7 tipos) + What/Why/Where/Learned</td>
+        <td>memory tipada (10 tipos) + title/what/why/where_at/learned</td>
+      </tr>
+      <tr>
+        <td class="dim">Upsert / dedup</td>
+        <td><span class="mk yes">✓</span><span class="mono">topic_key</span> + <span class="mono">normalized_hash</span></td>
+        <td><span class="mk yes">✓</span><span class="mono">topic_key</span> + <span class="mono">normalized_hash</span> + ventana de dedup de 15 min</td>
+      </tr>
+      <tr>
+        <td class="dim">Búsqueda</td>
+        <td><span class="mk mid">~</span>FTS5 BM25 lexical — sin semántica en el core</td>
+        <td><span class="mk yes">✓</span>FTS5 + híbrido FTS+vector opcional (RRF) cuando se activa</td>
+      </tr>
+      <tr>
+        <td class="dim">Relaciones entre memorias</td>
+        <td><span class="mk yes">✓</span>links tipados — <span class="mono">supersedes</span>, <span class="mono">conflicts_with</span>; detección de conflictos al guardar; LLM-judge</td>
+        <td><span class="mk no">✗</span>solo un grafo derivado (topic_key / archivo / proyecto) — sin links de significado</td>
+      </tr>
+      <tr>
+        <td class="dim">Decay / olvido</td>
+        <td><span class="mk no">✗</span>nada — las memorias se acumulan para siempre</td>
+        <td><span class="mk yes">✓</span><span class="mono">relevance_score</span> que decae + <span class="mono">memoria_forget</span> + soft-delete</td>
+      </tr>
+      <tr>
+        <td class="dim">Cross-project</td>
+        <td><span class="mk no">✗</span>namespaced por proyecto — sin transferencia entre proyectos</td>
+        <td><span class="mk yes">✓</span>scope <span class="mono">shared</span> + retrieval por stack-match entre proyectos del mismo stack</td>
+      </tr>
+      <tr>
+        <td class="dim">Sesiones</td>
+        <td><span class="mk yes">✓</span>sessions + summary estructurado</td>
+        <td><span class="mk yes">✓</span>sessions + summary + <span class="mono">suggested_memories</span> (heurístico bilingüe)</td>
+      </tr>
+      <tr>
+        <td class="dim">Multi-tenancy</td>
+        <td><span class="mk mid">~</span>single-user local; cloud self-host (Postgres)</td>
+        <td><span class="mk yes">✓</span><span class="mono">workspace_id</span> en todo + gateway CeroClawd con API keys</td>
+      </tr>
+      <tr>
+        <td class="dim">Sync multi-máquina</td>
+        <td><span class="mk yes">✓</span>git-chunk sync, vivo y funcionando</td>
+        <td><span class="mk no">✗</span><span class="mono">sync.mjs</span> existe pero es código muerto, sin endpoint</td>
+      </tr>
+      <tr>
+        <td class="dim">Tools MCP</td>
+        <td>19 — incluye <span class="mono">mem_judge</span>, <span class="mono">mem_compare</span>, <span class="mono">mem_doctor</span></td>
+        <td>15 — incluye <span class="mono">memoria_recall</span>, <span class="mono">memoria_timeline</span>, <span class="mono">memoria_forget</span></td>
+      </tr>
+      <tr>
+        <td class="dim">Agentes</td>
+        <td><span class="mk yes">✓</span><span class="mono">engram setup &lt;agente&gt;</span> — ~9 agentes, instalador por agente</td>
+        <td><span class="mk mid">~</span>Claude Code y pi vía el server MCP <span class="mono">cortex</span></td>
+      </tr>
+      <tr>
+        <td class="dim">Madurez</td>
+        <td><span class="mk yes">✓</span>v1.15.13, 83 releases</td>
+        <td><span class="mk mid">~</span>v1.1.0 — joven</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">04</span>Dónde engram está adelante</h2>
+  <p class="sub">Honesto: engram es el producto más completo y más maduro. Sin vueltas.</p>
+
+  <div class="cards">
+    <div class="card gap">
+      <span class="tag">el diferenciador de engram</span>
+      <h4>Relaciones y conflictos entre memorias</h4>
+      <p>engram, al guardar, busca memorias relacionadas y deja registrar verdictos
+      tipados — <span class="mono">supersedes</span>, <span class="mono">conflicts_with</span> — con un
+      LLM-judge opcional. Los resultados de búsqueda anotan "esto reemplaza a #42".
+      Es higiene de memoria real. Cortex solo acumula.</p>
+    </div>
+    <div class="card gap">
+      <span class="tag">robustez</span>
+      <h4>Binario Go, cero dependencias</h4>
+      <p>Un solo archivo estático — sin Node, sin Python, sin Docker. Trivial de
+      auditar, deployar y respaldar. Cortex necesita Node y su runtime.</p>
+    </div>
+    <div class="card gap">
+      <span class="tag">madurez</span>
+      <h4>v1.15.13 vs v1.1.0</h4>
+      <p>83 releases, instaladores por agente (<span class="mono">engram setup</span>), TUI, sync
+      por git vivo, cloud self-host con dashboard de equipo. Cortex tiene el
+      <span class="mono">sync.mjs</span> como código muerto y ningún dashboard de memoria propio.</p>
+    </div>
+    <div class="card gap">
+      <span class="tag">alcance</span>
+      <h4>Agente-agnóstico de verdad</h4>
+      <p>engram se instala en ~9 agentes (Claude Code, OpenCode, pi, Gemini, Codex,
+      Copilot, Cursor…) con wiring automatizado. Cortex hoy se usa desde Claude Code
+      y pi vía su server MCP.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">05</span>Dónde Cortex es distinto — su apuesta</h2>
+  <p class="sub">Más joven y más angosto, sí — pero apuesta a tres cosas que engram no hace.</p>
+
+  <div class="cards">
+    <div class="card win">
+      <span class="tag">el diferenciador de Cortex</span>
+      <h4>Memoria que cruza proyectos</h4>
+      <p>El <span class="mono">scope: shared</span> (derivado del tipo: pattern/lesson/preference)
+      hace que un patrón aprendido en un proyecto <b>aparezca solo</b> en otro del
+      mismo stack. engram aísla cada proyecto — no transfiere conocimiento entre
+      ellos. Es transferencia de aprendizaje, no solo almacenamiento.</p>
+    </div>
+    <div class="card win">
+      <span class="tag">higiene</span>
+      <h4>La memoria se olvida</h4>
+      <p>Cada memoria tiene un <span class="mono">relevance_score</span> que decae si no se toca
+      en 30+ días; <span class="mono">memoria_forget</span> poda lo viejo. engram no tiene decay
+      ni olvido — en un proyecto largo la memoria crece sin techo y el ranking BM25
+      no prioriza lo últimamente útil.</p>
+    </div>
+    <div class="card win">
+      <span class="tag">arquitectura</span>
+      <h4>Multi-tenant por diseño</h4>
+      <p>Cada fila lleva <span class="mono">workspace_id</span>; el gateway de CeroClawd valida
+      API keys y resuelve el workspace. Cortex no es un binario local — está hecho
+      para ser un <b>servicio de memoria de una plataforma</b>, con muchos usuarios.
+      engram es local-first single-user (su cloud es self-host).</p>
+    </div>
+    <div class="card win">
+      <span class="tag">retrieval</span>
+      <h4>Búsqueda híbrida opcional</h4>
+      <p>Cortex puede fusionar FTS5 y similitud vectorial (RRF) cuando se activa el
+      modo semántico. El core de engram es FTS5 lexical solo — si guardás "arreglé
+      el redirect de auth" y buscás "login loop", lexical puede no encontrarlo.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2><span class="num">06</span>El veredicto</h2>
+  <div class="bottom">
+    <p>Sin maquillaje: <b class="g">engram</b> es hoy la mejor memoria para
+    <b>usar standalone</b> — más madura, más completa, agente-agnóstica de verdad,
+    y con un diferenciador fuerte (relaciones y conflictos entre memorias) que
+    Cortex no tiene. El propio Cortex lo reconoce: "inspired by Engram".</p>
+    <p><b class="z">Cortex</b> no le gana a engram en features ni en madurez — y
+    pretender lo contrario sería deshonesto. Su apuesta es otra: ser la <b>capa de
+    memoria de una plataforma</b>, no un binario local. De ahí salen sus tres cosas
+    propias — memoria que cruza proyectos, decay/olvido, y multi-tenancy real.</p>
+    <p>La jugada para Cortex: robarle a engram las <b>relaciones entre memorias</b>
+    (su mejor idea) y cerrar el gap de madurez — sin perder lo suyo. Y a nivel
+    estratégico: igual que engram podría ser el backend de memoria de zero, Cortex
+    no necesita "ganarle" a engram — necesita ser la mejor memoria <b>integrada</b>
+    al ecosistema zero. Ahí sí no compiten en lo mismo.</p>
+  </div>
+
+  <p class="foot">
+    Fase 2 de 2 — comparativa de la memoria. <b>Fase 1:</b> el SDD — ver
+    <code>sdd-vs-gentle.html</code>.<br>
+    Fuentes: <code>github.com/Gentleman-Programming/engram</code> (v1.15.13) ·
+    <code>pi.dev/packages/gentle-engram</code>. Cortex — fuente
+    <code>E:\ceroProyect\memoria\</code> (v1.1.0) + gateway en <code>ceroclawd</code>.
+  </p>
+
+</div>
+</body>
+</html>
