@@ -1,4 +1,5 @@
 ---
+name: sdd-routing
 description: Route a natural-language request into the zero SDD pipeline when the user signals SDD intent
 ---
 

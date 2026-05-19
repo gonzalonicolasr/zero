@@ -1,3 +1,8 @@
+---
+name: skill-loop
+description: zero's skill auto-learning loop — distill, store, surface, and refine reusable skills
+---
+
 # zero — Skill Auto-Learning
 
 zero gives the agent a closed learning loop so solutions are reused, not

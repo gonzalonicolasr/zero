@@ -34,7 +34,7 @@ ssh -t "${HOST}" "sudo sh -c '
   mv /tmp/zero-index.html        ${REMOTE}/index.html &&
   mv /tmp/sdd-vs-gentle.html     ${REMOTE}/sdd-vs-gentle.html &&
   mv /tmp/cortex-vs-engram.html  ${REMOTE}/cortex-vs-engram.html &&
-  cp -f /tmp/zero-assets/*       ${REMOTE}/assets/ &&
+  cp -rf /tmp/zero-assets/*      ${REMOTE}/assets/ &&
   rm -rf /tmp/zero-assets &&
   chmod -R a+rX ${REMOTE} &&
   ls -la ${REMOTE}

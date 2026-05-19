@@ -7,13 +7,16 @@
 // order, then continues.
 //
 // Claude Code is single-provider (Anthropic-managed models); pi, OpenCode and
-// Codex are multi-provider. The catalog is discovered from the user's OpenCode
-// subscriptions where available — no model IDs hardcoded for that path.
+// Codex are multi-provider. The catalog is discovered — no model IDs hardcoded.
+// The `pi` agent is discovered from pi's own model registry (`pi --list-models`)
+// so the ids written to `~/.pi/zero.json` are ids pi resolves at run time;
+// every other agent is discovered from the user's OpenCode subscriptions.
 
 import * as p from "@clack/prompts";
 
 import { formatModelSpec } from "../config/model-spec.ts";
 import { discoverModels, type AvailableProvider } from "../models/discovery.ts";
+import { discoverPiModels } from "../models/pi-models.ts";
 import type { AgentId, PhaseModels, SddPhase } from "../types.ts";
 
 /** The SDD phases, in order. */
@@ -52,7 +55,10 @@ interface ModelCatalog {
 
 /** Build the model catalog for an agent from the discovered subscriptions. */
 function buildCatalog(agent: AgentId): ModelCatalog {
-  const discovered = discoverModels();
+  // pi resolves models from its own registry, so discover the pi agent's
+  // catalog from `pi --list-models` — its provider/model ids are what pi
+  // understands. Other agents use the OpenCode catalog.
+  const discovered = agent === "pi" ? discoverPiModels() : discoverModels();
 
   if (agent === "claude-code") {
     const anthropic = discovered.find((provider) => provider.id === "anthropic");

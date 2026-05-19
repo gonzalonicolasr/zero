@@ -3,564 +3,472 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>zero — el SDD que aprende</title>
-<meta name="description" content="zero instala un pipeline SDD para agentes de IA con veredicto adversarial, memoria de corridas, specs canónicas y autotune por fase." />
-<meta property="og:title" content="zero — el SDD que aprende" />
-<meta property="og:description" content="Un SDD para agentes de IA que no solo ejecuta specs: aprende de cada corrida." />
+<title>zero - SDD verificable para agentes de IA</title>
+<meta name="description" content="zero instala un pipeline SDD para agentes de IA con specs, veredicto adversarial, memoria de corridas y autotune por fase." />
+<meta property="og:title" content="zero - SDD verificable para agentes de IA" />
+<meta property="og:description" content="Un pipeline serio para que los agentes planifiquen, construyan y verifiquen con evidencia." />
 <meta property="og:type" content="website" />
+<meta property="og:image" content="https://zero.ceroclawd.com/assets/serious/hero-operations.webp" />
+<link rel="preload" as="image" href="assets/serious/hero-operations.webp" fetchpriority="high" />
 <style>
   :root {
-    --bg: #07090d;
-    --bg-2: #0d1118;
-    --ink: #f4f6fb;
-    --muted: #a7b0c1;
-    --quiet: #778195;
-    --panel: #111720;
-    --panel-2: #151d29;
-    --border: #293242;
-    --amber: #f5b85d;
-    --blue: #78b7ff;
-    --violet: #9c7cff;
-    --green: #65d79f;
-    --red: #f17786;
-    --shadow: 0 28px 90px rgba(0, 0, 0, .42);
-    --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --mono: "SF Mono", "JetBrains Mono", Consolas, monospace;
+    --bg: #050608;
+    --bg-soft: #090b0f;
+    --panel: rgba(255,255,255,.035);
+    --panel-strong: rgba(255,255,255,.055);
+    --line: rgba(255,255,255,.085);
+    --line-soft: rgba(255,255,255,.052);
+    --text: #f4f5f7;
+    --muted: #c1c7d0;
+    --quiet: #7e8794;
+    --faint: #4e5661;
+    --accent: #8b8cff;
+    --accent-2: #dfb56b;
+    --ok: #69d39b;
+    --danger: #ef7a8a;
+    --radius: 8px;
+    --sans: Inter, "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, ui-monospace, monospace;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; background: var(--bg); }
   body {
     min-height: 100vh;
-    color: var(--ink);
-    font: 16px/1.6 var(--sans);
+    overflow-x: hidden;
+    color: var(--text);
     background:
-      linear-gradient(115deg, rgba(245, 184, 93, .12), transparent 34%),
-      linear-gradient(245deg, rgba(120, 183, 255, .10), transparent 35%),
-      linear-gradient(180deg, var(--bg), var(--bg-2) 45%, var(--bg));
+      radial-gradient(circle at 80% 12%, rgba(139,140,255,.13), transparent 28%),
+      radial-gradient(circle at 18% 48%, rgba(223,181,107,.07), transparent 30%),
+      linear-gradient(180deg, #050608 0%, #080a0f 46%, #050608 100%);
+    font: 16px/1.58 var(--sans);
     -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .36;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(255,255,255,.022) 1px, transparent 1px);
+    background-size: 84px 84px;
+    mask-image: linear-gradient(180deg, transparent, #000 20%, #000 78%, transparent);
   }
 
   a { color: inherit; text-decoration: none; }
   code, .mono { font-family: var(--mono); }
   code {
-    border: 1px solid rgba(255,255,255,.12);
+    border: 1px solid var(--line);
     border-radius: 6px;
-    background: rgba(255,255,255,.05);
+    background: rgba(255,255,255,.045);
     padding: 1px 6px;
   }
-  b, strong { color: var(--ink); }
+  b, strong { color: var(--text); font-weight: 620; }
 
   .site {
     width: min(1180px, calc(100% - 40px));
     margin: 0 auto;
   }
-
   .nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    padding: 24px 0;
+    min-height: 72px;
     color: var(--muted);
+    backdrop-filter: blur(16px);
   }
   .brand {
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--ink);
-    font-weight: 760;
-    letter-spacing: .02em;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 620;
   }
   .mark {
-    width: 30px;
-    height: 30px;
-    border: 1px solid rgba(245, 184, 93, .55);
-    border-radius: 8px;
+    width: 28px;
+    height: 28px;
     display: grid;
     place-items: center;
-    color: var(--amber);
-    background: rgba(245, 184, 93, .09);
-    font-family: var(--mono);
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 7px;
+    background: rgba(255,255,255,.035);
+    color: var(--accent-2);
+    font: 700 13px/1 var(--mono);
   }
   .links {
     display: flex;
+    align-items: center;
     gap: 18px;
-    font-size: 14px;
+    color: var(--quiet);
+    font-size: 13px;
   }
-  .links a { color: var(--muted); }
-  .links a:hover { color: var(--ink); }
+  .links a:hover { color: var(--text); }
 
   .hero {
     position: relative;
-    min-height: 640px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    min-height: min(760px, calc(100vh - 88px));
+    display: grid;
+    align-items: end;
     overflow: hidden;
-    box-shadow: var(--shadow);
-    background: #080b11;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #06080b;
+    box-shadow: 0 34px 110px rgba(0,0,0,.45);
   }
-  .hero::before {
+  .hero-bg,
+  .hero-bg img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .hero-bg img {
+    object-fit: cover;
+    filter: saturate(.84) contrast(1.05);
+  }
+  .hero::after {
     content: "";
     position: absolute;
     inset: 0;
-    background:
-      linear-gradient(90deg, rgba(7, 9, 13, .96) 0%, rgba(7, 9, 13, .78) 36%, rgba(7, 9, 13, .18) 66%, rgba(7, 9, 13, .70) 100%),
-      repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 96px);
-    z-index: 2;
     pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(5,6,8,.96) 0%, rgba(5,6,8,.82) 39%, rgba(5,6,8,.20) 72%, rgba(5,6,8,.44) 100%),
+      linear-gradient(180deg, rgba(5,6,8,.04), rgba(5,6,8,.55) 72%, rgba(5,6,8,.94));
   }
-  .hero-art {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-  }
-  .hero-art img {
-    position: absolute;
-    bottom: 0;
-    height: 108%;
-    width: auto;
-    object-fit: cover;
-    filter: saturate(1.04) contrast(1.02);
-  }
-  .hero-art .architect {
-    right: 4%;
-  }
-  .hero-art .reviewer {
-    right: 35%;
-    opacity: .68;
-    transform: scale(.92);
-    transform-origin: bottom center;
-    mix-blend-mode: screen;
-  }
-  .hero-copy {
+  .hero-inner {
     position: relative;
-    z-index: 3;
-    max-width: 650px;
-    padding: 74px 54px 46px;
+    z-index: 2;
+    width: min(760px, 100%);
+    padding: clamp(28px, 6vw, 72px);
   }
-  .eyebrow {
-    color: var(--amber);
-    font: 700 12px/1.2 var(--mono);
+  .eyebrow,
+  .label {
+    color: var(--quiet);
+    font: 650 11px/1.3 var(--mono);
     letter-spacing: .14em;
     text-transform: uppercase;
   }
-  h1 {
-    margin-top: 18px;
-    font-size: 68px;
-    line-height: .96;
-    letter-spacing: 0;
-    font-weight: 850;
-  }
-  .headline-sub {
-    display: block;
+  .status-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 10px;
+    background: rgba(255,255,255,.035);
     color: var(--muted);
-    font-size: 28px;
-    font-weight: 650;
-    margin-top: 10px;
+    font-size: 13px;
+  }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 18px rgba(105,211,155,.7);
+  }
+  h1 {
+    max-width: 10.8ch;
+    font-size: clamp(48px, 8vw, 92px);
+    line-height: .94;
+    letter-spacing: -1.4px;
+    font-weight: 560;
   }
   .lede {
-    max-width: 58ch;
-    margin-top: 22px;
+    max-width: 56ch;
+    margin-top: 24px;
     color: var(--muted);
-    font-size: 18px;
+    font-size: clamp(17px, 2vw, 20px);
+    line-height: 1.62;
   }
-  .cta-row {
+  .actions {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: 28px;
+    margin-top: 30px;
   }
   .button {
-    min-height: 44px;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,.14);
+    min-height: 42px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0 16px;
-    font-weight: 720;
+    gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 0 15px;
     font-size: 14px;
+    font-weight: 560;
+    background: rgba(255,255,255,.035);
+    color: var(--text);
   }
   .button.primary {
-    color: #15100a;
-    border-color: var(--amber);
-    background: var(--amber);
+    border-color: rgba(139,140,255,.44);
+    background: rgba(139,140,255,.18);
   }
-  .button.secondary {
-    color: var(--ink);
-    background: rgba(255,255,255,.055);
-  }
-  .hero-proof {
-    position: absolute;
-    z-index: 3;
-    left: 54px;
-    right: 54px;
-    bottom: 34px;
+  .button:hover { background: rgba(255,255,255,.07); }
+  .hero-metrics {
+    position: relative;
+    z-index: 2;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 1px;
+    border-top: 1px solid var(--line);
+    background: rgba(255,255,255,.06);
   }
-  .stat {
-    min-height: 86px;
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 8px;
-    background: rgba(9, 12, 18, .72);
-    backdrop-filter: blur(10px);
-    padding: 13px;
+  .metric {
+    min-height: 104px;
+    padding: 18px;
+    background: rgba(5,6,8,.72);
+    backdrop-filter: blur(14px);
   }
-  .stat .k {
+  .metric span {
     display: block;
     color: var(--quiet);
-    font: 700 11px/1.2 var(--mono);
-    letter-spacing: .1em;
+    font: 650 11px/1.3 var(--mono);
+    letter-spacing: .12em;
     text-transform: uppercase;
   }
-  .stat .v {
+  .metric strong {
     display: block;
-    margin-top: 8px;
-    color: var(--ink);
-    font-size: 20px;
-    font-weight: 780;
-    line-height: 1.2;
+    margin-top: 10px;
+    font-size: 23px;
+    letter-spacing: -.2px;
   }
-  .stat:nth-child(1) { border-color: rgba(245,184,93,.36); }
-  .stat:nth-child(4) { border-color: rgba(101,215,159,.34); }
 
   .section {
-    margin-top: 66px;
+    position: relative;
+    margin-top: 96px;
   }
   .section-head {
-    max-width: 780px;
-    margin-bottom: 22px;
+    max-width: 760px;
+    margin-bottom: 26px;
   }
-  .section-label {
-    color: var(--quiet);
-    font: 700 12px/1.2 var(--mono);
-    letter-spacing: .14em;
-    text-transform: uppercase;
-  }
-  h2 {
-    margin-top: 9px;
-    font-size: 34px;
-    line-height: 1.12;
-    letter-spacing: 0;
+  .section-head h2 {
+    margin-top: 12px;
+    font-size: clamp(32px, 4vw, 54px);
+    line-height: 1.02;
+    letter-spacing: -.8px;
+    font-weight: 520;
   }
   .section-head p {
-    margin-top: 10px;
+    margin-top: 14px;
     color: var(--muted);
     font-size: 17px;
+    max-width: 64ch;
   }
 
-  .pipeline {
+  .contract {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-  .stage, .feature, .terminal, .character-card {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
-  }
-  .stage {
-    padding: 18px;
-  }
-  .stage .n {
-    color: var(--quiet);
-    font: 700 11px/1.2 var(--mono);
-    letter-spacing: .1em;
-    text-transform: uppercase;
-  }
-  .stage h3 {
-    margin-top: 12px;
-    color: var(--amber);
-    font-size: 22px;
-  }
-  .stage p {
-    margin-top: 8px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-
-  .intro {
-    position: relative;
-  }
-  .story-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .speech, .promise, .usecase {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.016));
-  }
-  .speech {
-    min-height: 230px;
-    padding: 22px;
-    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 12px;
     overflow: hidden;
-  }
-  .speech::after {
-    content: "";
-    position: absolute;
-    inset: auto 18px 18px auto;
-    width: 86px;
-    height: 86px;
-    border-radius: 50%;
-    opacity: .18;
-    background: var(--amber);
-    filter: blur(20px);
-  }
-  .reviewer-speech::after { background: var(--blue); }
-  .speaker {
-    color: var(--quiet);
-    font: 700 11px/1.2 var(--mono);
-    letter-spacing: .12em;
-    text-transform: uppercase;
-  }
-  .speech h3 {
-    max-width: 16ch;
-    margin-top: 12px;
-    font-size: 28px;
-    line-height: 1.08;
-  }
-  .speech p {
-    max-width: 42ch;
-    margin-top: 12px;
-    color: var(--muted);
-  }
-  .promise {
-    grid-column: 1 / -1;
-    padding: 24px;
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: 18px;
-    align-items: center;
-    border-color: rgba(245,184,93,.28);
-    background:
-      linear-gradient(120deg, rgba(245,184,93,.10), transparent 38%),
-      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.016));
-  }
-  .promise p {
-    color: var(--muted);
-    font-size: 18px;
-    line-height: 1.55;
-  }
-
-  .characters {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .character-card {
-    display: grid;
-    grid-template-columns: 44% 1fr;
-    overflow: hidden;
-    min-height: 460px;
-  }
-  .character-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .character-body {
-    padding: 24px;
-    align-self: end;
-  }
-  .role {
-    color: var(--quiet);
-    font: 700 11px/1.2 var(--mono);
-    letter-spacing: .12em;
-    text-transform: uppercase;
-  }
-  .character-body h3 {
-    margin-top: 9px;
-    font-size: 26px;
-  }
-  .character-body p {
-    margin-top: 9px;
-    color: var(--muted);
-    font-size: 15px;
-  }
-  .character-body .chip {
-    display: inline-flex;
-    margin-top: 18px;
-    border: 1px solid rgba(255,255,255,.14);
-    border-radius: 999px;
-    padding: 6px 10px;
-    color: var(--ink);
-    font-size: 12px;
-    font-family: var(--mono);
     background: rgba(255,255,255,.04);
   }
-
-  .features {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-  .feature {
-    min-height: 178px;
-    padding: 20px;
-  }
-  .feature .tag {
-    color: var(--amber);
-    font: 700 11px/1.2 var(--mono);
-    letter-spacing: .12em;
-    text-transform: uppercase;
-  }
-  .feature h3 {
-    margin-top: 12px;
-    font-size: 20px;
-  }
-  .feature p {
-    margin-top: 8px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-
-  .usecases {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-  .usecase {
-    min-height: 190px;
+  .phase {
+    min-height: 260px;
     padding: 22px;
+    background: rgba(5,6,8,.56);
+    border-right: 1px solid var(--line-soft);
   }
-  .usecase .tag {
-    color: var(--blue);
-    font: 700 11px/1.2 var(--mono);
-    letter-spacing: .12em;
-    text-transform: uppercase;
+  .phase:last-child { border-right: 0; }
+  .phase .num {
+    color: var(--faint);
+    font: 650 12px/1 var(--mono);
   }
-  .usecase h3 {
-    margin-top: 14px;
+  .phase h3 {
+    margin-top: 50px;
     font-size: 24px;
-    line-height: 1.12;
+    font-weight: 560;
+    letter-spacing: -.2px;
   }
-  .usecase p {
+  .phase p {
     margin-top: 10px;
     color: var(--muted);
     font-size: 14px;
   }
+  .phase.verdict h3 { color: var(--accent-2); }
 
-  .terminal {
-    padding: 22px;
+  .evidence {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+    gap: 18px;
+    align-items: stretch;
+  }
+  .evidence-media {
+    min-height: 560px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #07090c;
+  }
+  .evidence-media img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    filter: saturate(.88) contrast(1.04);
+  }
+  .evidence-panel {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255,255,255,.035);
+    padding: 24px;
+  }
+  .evidence-panel h3 {
+    margin-top: 10px;
+    font-size: 30px;
+    line-height: 1.08;
+    font-weight: 520;
+  }
+  .checks {
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .check {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 12px;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 13px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .check b { display: block; margin-bottom: 2px; }
+  .check i {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(105,211,155,.12);
+    color: var(--ok);
+    font: normal 700 12px/1 var(--mono);
+  }
+
+  .capabilities {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .capability {
+    min-height: 230px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
     background:
-      linear-gradient(180deg, rgba(101,215,159,.065), transparent),
-      #090d13;
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
+    padding: 20px;
+  }
+  .capability h3 {
+    margin-top: 56px;
+    font-size: 22px;
+    font-weight: 560;
+  }
+  .capability p {
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .capability .tag { color: var(--accent-2); }
+
+  .split {
+    display: grid;
+    grid-template-columns: .9fr 1.1fr;
+    gap: 18px;
+  }
+  .quote,
+  .terminal {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255,255,255,.035);
+  }
+  .quote {
+    padding: 28px;
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1.55;
+  }
+  .quote strong { color: var(--text); }
+  .terminal {
+    position: relative;
+    overflow: hidden;
+    padding: 24px;
+    background: #06080b;
+  }
+  .terminal::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139,140,255,.8), transparent);
   }
   .terminal pre {
+    position: relative;
     overflow-x: auto;
-    color: #d5ffe8;
-    font: 15px/1.7 var(--mono);
+    color: #d7dde8;
+    font: 14px/1.75 var(--mono);
   }
-  .terminal .prompt { color: var(--amber); }
-  .terminal .cmd { color: var(--green); }
-  .terminal .muted { color: var(--quiet); }
-
-  .verdict {
-    border: 1px solid rgba(245,184,93,.32);
-    border-radius: 8px;
-    background:
-      linear-gradient(135deg, rgba(245,184,93,.12), transparent 42%),
-      linear-gradient(180deg, rgba(21,29,41,.82), rgba(9,13,19,.92));
-    padding: 26px;
-    color: var(--muted);
-    box-shadow: 0 18px 70px rgba(0,0,0,.30);
-  }
-  .verdict p + p { margin-top: 12px; }
-  .verdict strong { color: var(--amber); }
-  .closing-cta { margin-top: 20px; }
+  .prompt { color: var(--quiet); }
+  .cmd { color: var(--ok); }
+  .muted { color: var(--faint); }
 
   footer {
-    margin: 62px 0 34px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-    color: var(--quiet);
-    font-size: 14px;
     display: flex;
     justify-content: space-between;
-    gap: 14px;
+    gap: 16px;
     flex-wrap: wrap;
+    margin: 96px 0 34px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    color: var(--quiet);
+    font-size: 13px;
   }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
 
   @media (max-width: 980px) {
     .hero { min-height: 760px; }
-    .hero-copy { padding: 52px 32px 40px; }
-    h1 { font-size: 54px; }
-    .headline-sub { font-size: 24px; }
-    .hero-art .architect { right: -16%; height: 92%; }
-    .hero-art .reviewer { right: 28%; height: 86%; opacity: .48; }
-    .hero-proof { left: 32px; right: 32px; grid-template-columns: 1fr 1fr; }
-    .pipeline, .features, .usecases { grid-template-columns: 1fr 1fr; }
-    .characters { grid-template-columns: 1fr; }
-    .story-grid { grid-template-columns: 1fr; }
-    .promise { grid-template-columns: 1fr; }
-  }
-
-  /* --- motion polish --- */
-  .reveal { opacity: 0; transform: translateY(18px);
-    transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
-  .reveal.in { opacity: 1; transform: none; }
-
-  h1 {
-    background: linear-gradient(96deg, var(--ink) 34%, var(--amber) 64%, var(--violet) 96%);
-    background-size: 220% 100%;
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: z-sheen 13s ease-in-out infinite alternate;
-  }
-  .headline-sub { -webkit-text-fill-color: var(--muted); }
-  @keyframes z-sheen { from { background-position: 0 0; } to { background-position: 100% 0; } }
-
-  .hero-art .architect { animation: z-float 9s ease-in-out infinite alternate; }
-  @keyframes z-float { from { transform: translateY(0); } to { transform: translateY(-12px); } }
-
-  .button { transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
-  .button:hover { transform: translateY(-2px); }
-  .button.primary:hover { box-shadow: 0 14px 32px -10px rgba(245,184,93,.55); }
-  .button.secondary:hover { background: rgba(255,255,255,.10); }
-
-  .stage, .feature, .usecase {
-    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-  }
-  .stage:hover, .feature:hover, .usecase:hover {
-    transform: translateY(-4px);
-    border-color: rgba(245,184,93,.40);
-    box-shadow: 0 24px 48px -24px rgba(0,0,0,.7);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .reveal, .reveal.in { opacity: 1; transform: none; transition: none; }
-    h1 { animation: none; }
-    .hero-art .architect { animation: none; }
+    .hero-inner { padding: 42px 28px; }
+    .hero-metrics, .contract, .capabilities { grid-template-columns: 1fr 1fr; }
+    .evidence, .split { grid-template-columns: 1fr; }
+    .evidence-media { min-height: 420px; }
   }
 
   @media (max-width: 680px) {
     .site { width: min(100% - 24px, 1180px); }
     .links { display: none; }
-    .hero { min-height: 860px; }
-    .hero::before {
+    .hero { min-height: 820px; }
+    .hero::after {
       background:
-        linear-gradient(180deg, rgba(7,9,13,.98) 0%, rgba(7,9,13,.76) 52%, rgba(7,9,13,.70) 100%),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 80px);
+        linear-gradient(180deg, rgba(5,6,8,.95), rgba(5,6,8,.72) 55%, rgba(5,6,8,.95));
     }
-    .hero-copy { padding: 34px 20px 28px; }
-    h1 { font-size: 43px; }
-    .headline-sub { font-size: 20px; }
-    .lede { font-size: 16px; }
-    .hero-art .architect { right: -38%; height: 70%; }
-    .hero-art .reviewer { right: 18%; height: 64%; opacity: .42; }
-    .hero-proof { left: 14px; right: 14px; bottom: 14px; grid-template-columns: 1fr; }
-    .pipeline, .features, .usecases { grid-template-columns: 1fr; }
-    .character-card { grid-template-columns: 1fr; }
-    .character-card img { height: 360px; }
-    h2 { font-size: 28px; }
+    .hero-inner { padding: 28px 20px; }
+    h1 { letter-spacing: -.6px; }
+    .hero-metrics, .contract, .capabilities { grid-template-columns: 1fr; }
+    .phase { min-height: 180px; border-right: 0; border-bottom: 1px solid var(--line-soft); }
+    .phase:last-child { border-bottom: 0; }
+    .phase h3 { margin-top: 30px; }
+    .evidence-media { min-height: 300px; }
     footer { display: block; }
     footer span { display: block; margin-top: 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal, .reveal.in { opacity: 1; transform: none; transition: none; }
   }
 </style>
 </head>
@@ -572,141 +480,130 @@
         <span>zero SDD</span>
       </a>
       <div class="links">
-        <a href="#pipeline">Pipeline</a>
-        <a href="#personajes">Personajes</a>
-        <a href="#vender">Por qué zero</a>
-        <a href="sdd-vs-gentle.html">SDD vs gentle</a>
+        <a href="#contrato">Contrato</a>
+        <a href="#evidencia">Evidencia</a>
+        <a href="#control">Control</a>
+        <a href="sdd-vs-gentle.html">Comparativa</a>
       </div>
     </nav>
 
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-art" aria-hidden="true">
-        <img class="reviewer" src="assets/veredicto-reviewer.png" alt="" />
-        <img class="architect" src="assets/zero-architect.png" alt="" />
-      </div>
-      <div class="hero-copy">
+      <picture class="hero-bg" aria-hidden="true">
+        <img src="assets/serious/hero-operations.webp" alt="" width="1920" height="1080" fetchpriority="high" />
+      </picture>
+      <div class="hero-inner">
+        <div class="status-line"><span class="status-dot"></span> zero-pi v0.1.12 disponible</div>
         <p class="eyebrow">Spec-driven development para agentes de IA</p>
-        <h1 id="hero-title">zero<span class="headline-sub">el SDD que aprende</span></h1>
+        <h1 id="hero-title">Delegar sin perder control.</h1>
         <p class="lede">
-          Convertí cualquier agente en un equipo disciplinado: primero entiende el
-          repo, después escribe specs, implementa con foco y solo declara victoria
-          cuando un reviewer adversarial lo aprueba.
+          zero convierte una petición abierta en una corrida trazable: explora,
+          planifica, construye y exige un veredicto antes de declarar éxito.
         </p>
-        <div class="cta-row">
-          <a class="button primary" href="#empezar">Instalar zero-pi</a>
-          <a class="button secondary" href="#pipeline">Cómo funciona</a>
+        <div class="actions">
+          <a class="button primary" href="#instalar">Instalar zero-pi</a>
+          <a class="button" href="#contrato">Ver el contrato</a>
         </div>
       </div>
-      <div class="hero-proof" aria-label="Métricas de zero">
-        <div class="stat"><span class="k">Versión</span><span class="v">0.1.10</span></div>
-        <div class="stat"><span class="k">Fases</span><span class="v">4</span></div>
-        <div class="stat"><span class="k">Agentes</span><span class="v">4</span></div>
-        <div class="stat"><span class="k">Tests</span><span class="v">288 OK</span></div>
+      <div class="hero-metrics" aria-label="Métricas de zero">
+        <div class="metric"><span>fases</span><strong>4</strong></div>
+        <div class="metric"><span>salida</span><strong>pasa / corregir / replantear</strong></div>
+        <div class="metric"><span>agentes</span><strong>Claude, pi, OpenCode, Codex</strong></div>
+        <div class="metric"><span>tests</span><strong>144 OK</strong></div>
       </div>
     </section>
 
-    <section class="section" id="pipeline">
+    <section class="section" id="contrato">
       <div class="section-head">
-        <p class="section-label">Sistema operativo de una feature</p>
-        <h2>Cuatro fases. Un loop. Cero teatro.</h2>
-        <p>zero convierte una idea en una corrida verificable, con artefactos claros y un punto de corte honesto.</p>
+        <p class="label">Contrato operativo</p>
+        <h2>Un pipeline corto, con un punto de corte real.</h2>
+        <p>
+          La promesa no es que el agente siempre acierte. La promesa es que no
+          avance sin contexto, no implemente sin plan y no cierre sin evidencia.
+        </p>
       </div>
-      <div class="pipeline">
-        <article class="stage">
-          <span class="n">Fase 01</span>
+      <div class="contract">
+        <article class="phase">
+          <span class="num">01</span>
           <h3>explore</h3>
-          <p>Lee el código sin tocarlo, encuentra restricciones y deja mapa del terreno.</p>
+          <p>Lee el repo, encuentra restricciones y deja un mapa antes de tocar archivos.</p>
         </article>
-        <article class="stage">
-          <span class="n">Fase 02</span>
+        <article class="phase">
+          <span class="num">02</span>
           <h3>plan</h3>
-          <p>Produce proposal, spec, diseño y tasks chicas con presupuesto de revisión.</p>
+          <p>Define proposal, spec, diseño y tareas pequeñas con presupuesto de revisión.</p>
         </article>
-        <article class="stage">
-          <span class="n">Fase 03</span>
+        <article class="phase">
+          <span class="num">03</span>
           <h3>build</h3>
-          <p>Implementa task por task, siguiendo el plan y testeando donde importa.</p>
+          <p>Implementa con foco, registra decisiones y usa tests donde cambian el riesgo.</p>
         </article>
-        <article class="stage">
-          <span class="n">Fase 04</span>
+        <article class="phase verdict">
+          <span class="num">04</span>
           <h3>veredicto</h3>
-          <p>Revisa con contexto fresco y decide: pasa, corregir o replantear.</p>
+          <p>Un reviewer fresco decide si pasa, vuelve a build o exige replantear.</p>
         </article>
       </div>
     </section>
 
-    <section class="section" id="personajes">
-      <div class="section-head">
-        <p class="section-label">El sistema, en dos roles</p>
-        <h2>zero piensa como dos mentes.</h2>
-        <p>Una ordena el trabajo antes de empezar. La otra no deja pasar nada sin verificar.</p>
+    <section class="section evidence" id="evidencia">
+      <div class="evidence-media">
+        <img src="assets/serious/workflow-evidence.webp" alt="Mesa de revisión técnica con documentos, timeline y evidencia visual de una corrida SDD" width="1600" height="900" loading="lazy" />
       </div>
-      <div class="characters">
-        <article class="character-card">
-          <img src="assets/zero-architect.png" alt="Personaje anime original Zero Architect junto a paneles de código y documentos de especificación" />
-          <div class="character-body">
-            <span class="role">Zero Architect</span>
-            <h3>Planifica antes de tocar el repo.</h3>
-            <p>Ordena contexto, specs y tasks chicas antes de escribir una línea. El agente trabaja con un mapa, no a ciegas.</p>
-            <span class="chip">explore → plan</span>
-          </div>
+      <div class="evidence-panel">
+        <p class="label">Evidencia sobre intuición</p>
+        <h3>El trabajo queda auditable.</h3>
+        <div class="checks">
+          <div class="check"><i>✓</i><p><b>Specs canónicas.</b><code>.sdd/specs/</code> evoluciona con deltas y audit trail.</p></div>
+          <div class="check"><i>✓</i><p><b>Run-memory.</b>La próxima corrida recuerda fallos, decisiones y fixes útiles.</p></div>
+          <div class="check"><i>✓</i><p><b>Autotune v2.</b>El modelo se ajusta por fase según resultados reales.</p></div>
+          <div class="check"><i>✓</i><p><b>Cap duro.</b>Si no verifica dentro del límite, zero frena y lo dice.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="control">
+      <div class="section-head">
+        <p class="label">Por qué alguien lo instala</p>
+        <h2>Menos improvisación. Más trazabilidad.</h2>
+        <p>zero está pensado para delegar features completas sin convertir la sesión en una caja negra.</p>
+      </div>
+      <div class="capabilities">
+        <article class="capability">
+          <span class="label tag">Honestidad</span>
+          <h3>No hay falso cierre.</h3>
+          <p>Sin veredicto positivo, la corrida no se vende como terminada.</p>
         </article>
-        <article class="character-card">
-          <img src="assets/veredicto-reviewer.png" alt="Personaje anime original Veredicto Reviewer revisando paneles de tests y resultados" />
-          <div class="character-body">
-            <span class="role">Veredicto Reviewer</span>
-            <h3>No firma nada sin evidencia.</h3>
-            <p>El crítico del pipeline. Corta los loops infinitos, manda a rebuild o replan, y solo firma lo que verificó.</p>
-            <span class="chip">build → veredicto</span>
-          </div>
+        <article class="capability">
+          <span class="label tag">Memoria</span>
+          <h3>Aprende del historial.</h3>
+          <p>Los errores relevantes se convierten en contexto para la próxima ejecución.</p>
+        </article>
+        <article class="capability">
+          <span class="label tag">Ruteo</span>
+          <h3>Modelos por fase.</h3>
+          <p>No todo problema pide el mismo modelo. zero ajusta donde importa.</p>
+        </article>
+        <article class="capability">
+          <span class="label tag">Specs</span>
+          <h3>Decisiones persistentes.</h3>
+          <p>La especificación no muere en el chat: queda en archivos versionables.</p>
+        </article>
+        <article class="capability">
+          <span class="label tag">Continuidad</span>
+          <h3>Retomar sin repetir.</h3>
+          <p><code>/forge --continue</code> vuelve a la fase incompleta sin reiniciar.</p>
+        </article>
+        <article class="capability">
+          <span class="label tag">Compatibilidad</span>
+          <h3>Mismo contrato.</h3>
+          <p>Claude Code, pi, OpenCode y Codex pueden usar la misma disciplina.</p>
         </article>
       </div>
     </section>
 
-    <section class="section" id="vender">
-      <div class="section-head">
-        <p class="section-label">Por qué alguien lo instala</p>
-        <h2>zero te da control sobre el trabajo de agentes.</h2>
-        <p>El beneficio no es “más IA”. Es menos improvisación, menos loops ciegos y más confianza para delegar features completas.</p>
-      </div>
-      <div class="features">
-        <article class="feature">
-          <span class="tag">Honestidad</span>
-          <h3>Cap duro</h3>
-          <p>Si no se verifica dentro del límite, zero frena y declara la corrida como no verificada.</p>
-        </article>
-        <article class="feature">
-          <span class="tag">Memoria</span>
-          <h3>Run-memory loop</h3>
-          <p>Guarda qué falló, dónde y por qué, para que la próxima corrida arranque con aprendizaje.</p>
-        </article>
-        <article class="feature">
-          <span class="tag">Ruteo</span>
-          <h3>Autotune v2</h3>
-          <p>Ajusta el modelo por fase según resultados reales, no por intuición estática.</p>
-        </article>
-        <article class="feature">
-          <span class="tag">Specs</span>
-          <h3>Canónicas y acumulativas</h3>
-          <p>Las decisiones viven en <code>.sdd/specs/</code>, evolucionan con deltas y se archivan con audit trail.</p>
-        </article>
-        <article class="feature">
-          <span class="tag">Continuidad</span>
-          <h3>Corridas resumibles</h3>
-          <p><code>/forge --continue</code> retoma desde la fase o task incompleta, sin reiniciar el razonamiento.</p>
-        </article>
-        <article class="feature">
-          <span class="tag">Compatibilidad</span>
-          <h3>Claude, pi, OpenCode, Codex</h3>
-          <p>La misma disciplina se instala en distintos agentes mediante adapters.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="section" id="empezar">
-      <div class="section-head">
-        <p class="section-label">Instalación</p>
-        <h2>Arrancá una feature con SDD real.</h2>
+    <section class="section split" id="instalar">
+      <div class="quote">
+        <p><strong>zero no intenta que la IA parezca mágica.</strong> Hace algo más útil: vuelve explícito el trabajo que normalmente queda escondido entre prompts, diffs y suposiciones.</p>
       </div>
       <div class="terminal" role="region" aria-label="Comandos de instalación">
 <pre><span class="prompt">$</span> <span class="cmd">pi install npm:@gonrocca/zero-pi</span>
@@ -717,45 +614,64 @@
       </div>
     </section>
 
-    <section class="section">
-      <div class="verdict">
-        <p><strong>zero no promete un agente perfecto.</strong> Promete algo mejor: que trabaje con proceso, deje evidencia, y admita cuando todavía no verificó.</p>
-        <p>Proceso antes que magia. Pruebas antes que “terminé”. Eso es lo que instalás.</p>
-        <div class="cta-row closing-cta">
-          <a class="button primary" href="#empezar">Probar zero</a>
-          <a class="button secondary" href="sdd-vs-gentle.html">Ver la comparativa</a>
-        </div>
-      </div>
-    </section>
-
     <footer>
-      <div>zero SDD · v0.1.10 · MIT · Gonzalo Rocca</div>
+      <div>zero SDD · v0.1.12 · MIT · Gonzalo Rocca</div>
       <span><a href="https://www.npmjs.com/package/@gonrocca/zero-pi">npm</a> · <a href="sdd-vs-gentle.html">comparativa SDD</a> · <a href="cortex-vs-engram.html">memoria</a> · <a href="https://ceroclawd.com">CeroClawd</a></span>
     </footer>
   </main>
+
+  <script src="assets/vendor/gsap.min.js"></script>
+  <script src="assets/vendor/ScrollTrigger.min.js"></script>
   <script>
   (function () {
-    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var sel = '.eyebrow, h1, .lede, .cta-row, .hero-proof .stat, .section-head,'
-      + ' .stage, .speech, .promise, .usecase, .character-card, .feature, .terminal, .verdict';
-    var els = [].slice.call(document.querySelectorAll(sel));
-    els.forEach(function (el) { el.classList.add('reveal'); });
-    if (!('IntersectionObserver' in window)) {
-      els.forEach(function (el) { el.classList.add('in'); });
+    var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var revealItems = [].slice.call(document.querySelectorAll(
+      '.hero-inner > *, .metric, .section-head, .phase, .evidence-media, .evidence-panel, .capability, .quote, .terminal'
+    ));
+    revealItems.forEach(function (el) { el.classList.add('reveal'); });
+
+    function fallbackReveal() {
+      if (!('IntersectionObserver' in window)) {
+        revealItems.forEach(function (el) { el.classList.add('in'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        });
+      }, { threshold: .12, rootMargin: '0px 0px -7% 0px' });
+      revealItems.forEach(function (el) { io.observe(el); });
+    }
+
+    if (reduced || !window.gsap || !window.ScrollTrigger) {
+      fallbackReveal();
       return;
     }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        var sibs = [].slice.call(e.target.parentNode.children)
-          .filter(function (n) { return n.classList.contains('reveal'); });
-        var i = Math.max(0, Math.min(sibs.indexOf(e.target), 5));
-        e.target.style.transitionDelay = (i * 70) + 'ms';
-        e.target.classList.add('in');
-        io.unobserve(e.target);
+
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.set('.reveal', { opacity: 0, y: 18 });
+
+    gsap.timeline({ defaults: { ease: 'power3.out' } })
+      .to('.hero-inner > *', { opacity: 1, y: 0, stagger: .08, duration: .7 }, .1)
+      .to('.metric', { opacity: 1, y: 0, stagger: .05, duration: .48 }, .55);
+
+    gsap.to('.hero-bg img', {
+      scale: 1.06,
+      ease: 'none',
+      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
+    });
+
+    gsap.utils.toArray('.section-head, .phase, .evidence-media, .evidence-panel, .capability, .quote, .terminal').forEach(function (el) {
+      gsap.to(el, {
+        opacity: 1,
+        y: 0,
+        duration: .72,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 84%', once: true }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -7% 0px' });
-    els.forEach(function (el) { io.observe(el); });
+    });
   })();
   </script>
 </body>
