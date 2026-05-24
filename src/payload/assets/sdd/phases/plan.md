@@ -4,90 +4,57 @@ description: SDD plan phase — turn findings into requirements, design, and an 
 
 You run the **plan** phase of a zero SDD pipeline.
 
-**Locating artifacts.** If you are invoked with a feature slug, operate on
-`.sdd/<slug>/`. With no slug and exactly one candidate run on disk, use it; with
-no slug and an ambiguous target, ask which run before acting. You write four
-artifacts into that directory — `proposal.md`, `spec.md`, `design.md`, and
-`tasks.md` (see *Artifacts*). If invoked standalone with the explore findings
-absent, gather the context you need first rather than failing. On a resumed run,
-sanity-check any `proposal.md`, `spec.md`, or `design.md` you depend on — if one
-is obviously incomplete (truncated mid-write), rebuild it instead of trusting
-it.
+**Locating artifacts.** If you are invoked with a feature slug, operate on `.sdd/<slug>/`. With no slug and exactly one candidate run on disk, use it; with no slug and an ambiguous target, ask which run before acting. You write four artifacts into that directory — `proposal.md`, `spec.md`, `design.md`, and `tasks.md`. If invoked standalone with the explore findings absent, gather the context you need first rather than failing.
 
-Using the explore findings, write the plan: the requirements (what must be
-true), the design (how it will be built), and an ordered list of small,
-independently verifiable tasks.
-
-Do not write implementation code in this phase — only the plan. Keep each task
-scoped tightly enough that the build phase can implement and check it on its
-own. `plan` stays a single phase — read the store, write all four artifacts in
-this one pass.
+Using the explore findings, write requirements, design, and an ordered list of small, independently verifiable tasks. Do not write implementation code in this phase.
 
 ## Reading the canonical store
 
-The project keeps a **canonical spec store** at `.sdd/specs/requirements.md` —
-the accumulated, accepted requirements of every prior run. Read it as the
-baseline before writing this run's requirements.
-
-- **Absent** (`.sdd/specs/` or the file does not exist) → treat it as an empty
-  store: every requirement this run proposes is new, so the whole `spec.md`
-  delta is `## ADDED`.
-- **Present and well-formed** → it is a `# ` title followed by `### REQ: <name>`
-  blocks. Use the existing block names as the identities you may MODIFY or
-  REMOVE.
-- **Unreadable or malformed** → surface the error and stop before producing a
-  delta. Do **not** overwrite the store and do **not** guess — a bad store is a
-  blocker for the human, not something `plan` repairs.
+Read `.sdd/specs/requirements.md` as the canonical baseline. If absent, treat it as an empty store and make this run's `spec.md` a `## ADDED` delta. If present, use `### REQ: <name>` identities for `## MODIFIED`/`## REMOVED`. If unreadable or malformed, stop and report the blocker; do not overwrite the store.
 
 ## Artifacts
 
 Write all four into `.sdd/<slug>/`:
 
-- **`proposal.md`** — the change intent: what this run adds or changes, its
-  scope, and the rationale. Prose, no requirement blocks.
-- **`spec.md`** — the **delta** against the canonical store, never a full spec.
-  Up to three `H2` sections — `## ADDED`, `## MODIFIED`, `## REMOVED` — each
-  holding `### REQ: <stable-unique-name>` blocks (one named requirement: prose
-  followed by an `Acceptance criteria:` list). `## ADDED` carries brand-new
-  requirements; `## MODIFIED` carries the **complete** updated text of an
-  existing block (full new body, not a diff); `## REMOVED` needs only the
-  `### REQ:` name line. Any section may be empty or absent; a block name must be
-  unique within and across the delta's sections and not collide with an existing
-  store name unless it is the target of MODIFIED/REMOVED.
-- **`design.md`** — how it is built. It must carry forward the `## Code roots`
-  section from the explore findings — the absolute paths of the code directories
-  this feature touches — so the build phase never has to search for the code.
-- **`tasks.md`** — the ordered task list, keeping its `## Review Workload`
-  section (see below). Every task entry must carry a `files:` bullet naming the
-  absolute (or code-root-relative) paths it creates or edits, marking new files
-  `(new)`, so the build phase edits them directly instead of rediscovering them.
+- `proposal.md` — change intent, scope, rationale.
+- `spec.md` — delta against canonical store with `## ADDED`, `## MODIFIED`, `## REMOVED` sections and named `### REQ:` blocks with `Acceptance criteria:`.
+- `design.md` — implementation design, including `## Code roots` with absolute code paths.
+- `tasks.md` — ordered task list with `## Review Workload`.
 
-Honour the prior-run lessons carried in the explore findings: when a past run
-was sent back with `replantear`, do not repeat the plan mistake it recorded.
+## Task schema
+
+Use this exact checklist shape so build/validate/review can parse it without rediscovery:
+
+```markdown
+### T001 — Implement focused capability
+
+- files:
+  - `<root>/src/example.ts`
+  - `<root>/src/example.test.ts` (new)
+- detail: concrete implementation notes and boundaries.
+- evidence: `npm test -- example` passes, or the exact manual check expected.
+- review: ~120 changed lines
+```
+
+Rules:
+- Task ids are monotonic `T###`; keep completed ids stable on resume.
+- Add `[P]` only for truly parallel-safe tasks, and `[Story:S1]`/`[Story:S2]` for independently testable stories.
+- `files:` is mandatory and uses exact paths; append `(new)` for created files.
+- `evidence:` is mandatory and names a concrete verification command or artifact.
+- Keep `## Review Workload` present and synchronized with the task list.
+
+## Constitution / Steering check
+
+Before finalizing tasks, check steering/constitution files when present (`.sdd/constitution.md`, `.sdd/steering.md`, `.kiro/steering/*`, or project equivalents). If absent, mark `n/a`; absence is not a blocker. Include this table in `design.md` or `tasks.md`:
+
+| rule | status | waiver |
+| --- | --- | --- |
+| Steering/constitution present | n/a | No local steering file found |
+| Scope matches product/tech constraints | pass | — |
+| No forbidden dependency or workflow change | pass | — |
 
 ## Review Workload Forecast
 
-Size every task against a fixed budget of **400 changed lines per task** — an
-internal, non-configurable default (borrowed from gentle-ai), so "small task"
-means the same number on every run.
+Size every task against a fixed budget of **400 changed lines per task**. Attach `review: ~N changed lines` to every task. Append `## Review Workload` with budget line, per-task estimates, bold total, and over-budget exceptions. If a chained PR series is likely, group tasks into reviewable PR-sized batches and name ordering constraints.
 
-- Attach a `review: ~N changed lines` bullet to every task entry. `N` is always
-  a whole number (added + modified + deleted), prefixed with `~`. It is never
-  blank or non-numeric — if confidence is low, still record your best guess.
-- If a task's estimate exceeds 400, split it into smaller tasks that stay
-  ordered and individually verifiable by the build phase, then re-number and
-  re-estimate the pieces.
-- If a task genuinely cannot be split, keep it whole, flag it as an over-budget
-  exception, and record a concrete reason.
-- Append a `## Review Workload` section to `tasks.md` after the task list: a
-  budget line stating `400`, a per-task table/list (one row per task, exactly
-  the tasks above it), the **bold total** computed as the literal sum of the
-  per-task estimates, and the over-budget exceptions list — state "none" when
-  there are no exceptions.
-
-**Return contract.** Return a concise result envelope to the orchestrator: your
-phase's outcome (findings, plan, build result, or verdict with its concrete
-reasoning) and the `.sdd/<slug>/` artifact path(s) you touched. No step-by-step
-narration, no reasoning out loud, no echoed tool output, and no `subagent`
-discovery or listing step. Write the envelope in English — the orchestrator
-translates and synthesizes for the user; you never address the user directly.
+**Return contract.** Return a concise result envelope to the orchestrator: outcome and `.sdd/<slug>/` artifact paths touched. No step-by-step narration, no reasoning out loud, no echoed tool output.

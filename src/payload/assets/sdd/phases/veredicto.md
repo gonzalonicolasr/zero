@@ -23,8 +23,9 @@ to those paths to inspect the changes and run the tests.
 `find`, `grep -r`, or `rg` rooted at `/`, a bare drive (`/c`, `C:\`), or `~`/
 `$HOME` is forbidden — on Windows it does not merely run slow, it **hangs
 forever** forcing OneDrive to hydrate every cloud placeholder it walks (a real
-run wedged on `find / -maxdepth 12 …` for 6+ hours). Always scope a search to
-the code-root absolute path (`find <code-root> -name …`). If you cannot find the
+run wedged on `find / -maxdepth 12 …` for 6+ hours). zero blocks such commands
+at the tool boundary, so the call will fail anyway. Always scope a search to the
+code-root absolute path (`find <code-root> -name …`). If you cannot find the
 code root in the plan, say so in the verdict — do not go hunting for it.
 
 Also do **not** re-read a file you have already read this review unless it
@@ -38,13 +39,30 @@ Review the build adversarially, with a fresh perspective. Check it against the
 plan's requirements, run the tests yourself, and look for gaps, regressions,
 and unmet acceptance criteria.
 
+## Constitution / Steering gate
+
+Re-check the plan's Constitution/Steering table before choosing a verdict. If a
+present steering or constitution rule is violated and the plan did not record an
+explicit waiver, return `corregir` even if the code compiles. If steering files
+are absent, treat the row as `n/a`, not as a failure.
+
+Example gate table to cite in reasoning when relevant:
+
+| rule | status | waiver |
+| --- | --- | --- |
+| Steering/constitution present | n/a | No local steering file found |
+| Scope matches product/tech constraints | pass | — |
+| No forbidden dependency or workflow change | fail | corregir: added undeclared dependency |
+
 Record exactly one verdict:
 
 - `pasa` — the build meets the plan; the run finishes successfully.
 - `corregir` — fixable defects remain; the build phase must re-run.
 - `replantear` — the plan itself is wrong; the plan phase must re-run.
 
-Never return `pasa` unless the evidence supports it.
+Never return `pasa` unless the evidence supports it. `/zero-pr` is only allowed
+for runs whose latest recorded `veredicto` is `pasa`; if the verdict is
+`corregir` or `replantear`, the PR must wait for the next successful review.
 
 State the verdict's reasoning concretely — the specific defects for `corregir`,
 the specific plan flaw for `replantear`. The orchestrator persists that
