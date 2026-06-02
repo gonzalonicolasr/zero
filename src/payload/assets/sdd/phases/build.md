@@ -26,6 +26,64 @@ then proceed — never fall back to scanning the whole tree.
 Implement the planned tasks in order, test-first where practical. Keep every
 change within the plan's scope — do not expand it on your own initiative.
 
+## Strict TDD
+
+This run builds **test-first** by default. Strict TDD engages when a test runner
+exists (a `package.json` test script, `pyproject.toml`, `go.mod`, a Makefile
+target, etc.) **and** the task touches code. A docs-, copy-, or config-only
+task, or a project with no test runner, degrades gracefully — note it and
+implement on the standard path. When it engages, follow this cycle for **every**
+task in your batch:
+
+1. **SAFETY NET** (only when modifying existing files) — run the existing tests
+   for the files you will touch and capture the baseline ("N passing"). If any
+   already fail, STOP and report it as a pre-existing failure; do not fix it.
+2. **RED** — write a failing test FIRST that describes the expected behavior
+   from the spec. It must reference production code that does not exist yet (or
+   new behavior of existing code). Never write production code before this test.
+3. **GREEN** — write the MINIMUM code to pass ("Fake It" with a hardcode is
+   valid here). EXECUTE the focused test and confirm it passes before moving on.
+4. **TRIANGULATE** (required unless the task is purely structural) — add a
+   second case with different inputs/outputs; when the hardcode breaks,
+   generalize to real logic. Minimum two cases per behavior (happy path + one
+   edge). Watch for a GREEN that passes trivially (component never rendered,
+   loop over an empty collection, code path never triggered) — that is not a
+   real GREEN. Note "Triangulation skipped: <reason>" only for a constant/type/
+   config task with one possible output.
+5. **REFACTOR** — remove duplication, extract pure functions, improve names;
+   re-run the tests after each step and revert any step that breaks them.
+6. Mark the task `[x]` and run the focused test, not the whole suite (the full
+   suite runs once at the end).
+
+For a task that refactors existing code, write **approval tests** capturing the
+current behavior first, confirm they pass, refactor, then confirm they still
+pass.
+
+**Assertion quality (mandatory).** Every assertion must call production code and
+assert a specific value that would FAIL if the logic were wrong. Banned:
+tautologies (`expect(true).toBe(true)`), empty-collection checks with no setup
+that explains the emptiness, lone type-only checks (`toBeDefined()` with no
+value asserted), ghost loops (assertions inside a loop over a possibly-empty
+collection), smoke-only tests (render + "is in the document" with no behavioral
+assertion), and implementation-detail/CSS-class assertions. If a test needs more
+mocks than assertions, extract the logic to a pure function and test that
+instead. A trivial assertion is worse than no test.
+
+**TDD Cycle Evidence (mandatory output).** When Strict TDD engaged, write a TDD
+Cycle Evidence table to `.sdd/<slug>/tdd-evidence.md` (create it on the first
+batch; append later batches — never overwrite prior rows) and include it in your
+return envelope, one row per task:
+
+```markdown
+| Task | Test File | Layer | Safety Net | RED | GREEN | TRIANGULATE | REFACTOR |
+|------|-----------|-------|------------|-----|-------|-------------|----------|
+| T001 | `path/test.ext` | Unit | ✅ 5/5 | ✅ Written | ✅ Passed | ✅ 3 cases | ✅ Clean |
+```
+
+Use "N/A (new)" for the Safety Net of a new file and "➖ Single" when the spec
+has one scenario. The veredicto phase audits this table and returns `corregir`
+if it is missing while Strict TDD was active.
+
 **Scope to your batch.** When the brief names a batch — a set or contiguous
 range of task numbers — implement exactly those tasks, mark each `[x]`, and
 **return**; do not continue into later unchecked tasks (the orchestrator drives

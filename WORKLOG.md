@@ -2,6 +2,34 @@
 
 A chronological log of the work on zero / zero-pi. Newest first.
 
+## Session — 2026-06-02 — Strict TDD in the SDD pipeline (ported from gentle-ai)
+
+Ported gentle-ai's strict TDD discipline into zero's SDD build/veredicto phases,
+across both surfaces.
+
+### zero-pi package (`packages/zero-pi/`)
+
+- New support modules `prompts/support/strict-tdd.md` (build contract: RED →
+  GREEN → TRIANGULATE → REFACTOR, safety net, test-layer selection, pure-function
+  preference, approval testing, banned-assertion catalogue, mandatory TDD Cycle
+  Evidence table → `.sdd/<slug>/tdd-evidence.md`) and
+  `prompts/support/strict-tdd-verify.md` (veredicto audit → `corregir` mapping).
+- `extensions/sdd-config.ts`: new `tdd` block (`{ mode: "strict"|"off",
+  testCommand }`, default strict, runtime-gated). `extensions/sdd-agents.ts`:
+  stages both support modules to `~/.pi/agent/agents/zero/support/` at load so
+  the `inheritSkills:false` build/veredicto sub-agents can read them
+  (`SUPPORT_MODULES`, `supportModulesDir()`).
+- Phase prompts wired: `build.md`, `veredicto.md`, `plan.md`, `orchestrator.md`,
+  `forge.md`. 11 new tests; suite 313 → 319 green.
+
+### Integrator payload (`src/payload/assets/sdd/`, for claude/opencode/codex)
+
+- The payload renders phases inline per adapter (no runtime support-file seam
+  like pi), so the TDD contract is embedded self-contained in the phase bodies:
+  `phases/build.md` (full cycle + assertion-quality + evidence table),
+  `phases/veredicto.md` (TDD audit), `phases/plan.md` (TDD-shaped tasks),
+  `orchestrator.md` (Strict TDD forwarding). Integrator suite stays 566 green.
+
 ## Session — 2026-05-17 / 18
 
 The session that turned `cero-pi` into `zero-pi` and built it out to adaptive

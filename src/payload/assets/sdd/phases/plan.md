@@ -43,6 +43,18 @@ Rules:
 - `evidence:` is mandatory and names a concrete verification command or artifact.
 - Keep `## Review Workload` present and synchronized with the task list.
 
+## TDD-shaped tasks
+
+The build phase runs **test-first** by default whenever a test runner exists and
+the task touches code. Shape tasks so that discipline is natural: list each code
+task's **test file alongside its production file** in `files:` (mark a new test
+`(new)`), and make `evidence:` name the **focused test command** that proves it
+(`npm test -- <file>`, `pytest <file>`, `go test ./pkg -run <Name>`), not a vague
+"works". Keep each task small enough that one RED → GREEN → TRIANGULATE →
+REFACTOR cycle covers it. Purely structural tasks (a constant, a type, a config
+value) need no test — say so in `detail:` so the build phase can note
+"Triangulation skipped" without guessing.
+
 ## Constitution / Steering check
 
 Before finalizing tasks, check steering/constitution files when present (`.sdd/constitution.md`, `.sdd/steering.md`, `.kiro/steering/*`, or project equivalents). If absent, mark `n/a`; absence is not a blocker. Include this table in `design.md` or `tasks.md`:

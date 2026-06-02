@@ -148,6 +148,19 @@ phase (re-batching whatever tasks its defects reopened) as the next round.
 **Resume is unaffected.** Each batch marks its tasks `[x]` as they land, so an
 interrupted batched build resumes from the first `[ ]` task with no new state.
 
+## Strict TDD forwarding
+
+zero runs build **test-first** by default. Before the **build** and
+**veredicto** phases, forward the discipline explicitly in the brief rather than
+leaving the sub-agent to infer it. Strict TDD engages when a test runner exists
+and the work touches code; the phase prompts gate on that and degrade gracefully
+for docs/config-only changes or projects with no runner. Add one line to the
+`build` and `veredicto` briefs — `Strict TDD: follow RED → GREEN → TRIANGULATE →
+REFACTOR and record the TDD Cycle Evidence table.` The build writes its evidence
+to `.sdd/<slug>/tdd-evidence.md`; veredicto audits it and returns `corregir`
+(missing evidence, a reported-green test that now fails, or a CRITICAL assertion
+violation), which re-runs build as the next round like any other defect list.
+
 ## Language Boundary
 
 A zero SDD run has two language surfaces — keep them apart.

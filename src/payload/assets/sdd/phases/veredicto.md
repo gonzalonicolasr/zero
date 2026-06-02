@@ -39,6 +39,34 @@ Review the build adversarially, with a fresh perspective. Check it against the
 plan's requirements, run the tests yourself, and look for gaps, regressions,
 and unmet acceptance criteria.
 
+## Strict TDD audit
+
+Strict TDD governed this run when a test runner exists and the change touches
+code — a `.sdd/<slug>/tdd-evidence.md` file or a TDD Cycle Evidence table in the
+build result signals it was active. When it governed the run, audit it before
+choosing a verdict:
+
+1. **Evidence present** — confirm the TDD Cycle Evidence table exists. A missing
+   table while Strict TDD was active is itself grounds for `corregir`.
+2. **RED real** — every test file named in the table must EXIST in the codebase.
+3. **GREEN real** — run the listed tests yourself; a test the build reported as
+   passing that now fails is a CRITICAL discrepancy → `corregir`.
+4. **Triangulation** — a behavior with multiple spec scenarios but a single test
+   case is a WARNING; note it.
+5. **Assertion quality** — scan the changed/created tests for banned patterns:
+   tautologies, assertions that never call production code, ghost loops over
+   possibly-empty collections, incomplete cycles (the code path is never
+   exercised), smoke-only tests, and implementation-detail/CSS-class assertions.
+   A tautology, a no-production-call assertion, or a ghost loop is CRITICAL →
+   `corregir`; smoke-only, impl-detail, and mock-heavy tests are WARNINGs to
+   list in the reasoning.
+
+When coverage or lint/typecheck tools are available, run them on the changed
+files and report — informational, WARNING at most, never the sole cause of
+`corregir`. When a tool is absent, say so and move on; a missing tool is never a
+failure. When Strict TDD did **not** govern the run (no test runner or a
+code-free change), skip this audit and review on the standard criteria below.
+
 ## Constitution / Steering gate
 
 Re-check the plan's Constitution/Steering table before choosing a verdict. If a
