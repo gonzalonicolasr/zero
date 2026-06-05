@@ -76,6 +76,16 @@ const INVARIANTS: Record<string, RegExp[]> = {
     /strict tdd/i,
     /RED ?→? ?GREEN/i,
     /Resuming a run/i,
+    // Spec-store discipline. The *command* that folds + archives the delta
+    // differs by target (pi runs `/zero-archive`; the payload describes the
+    // fold as a manual step), so this does NOT pin a command name — only the
+    // shared invariants: a canonical store, a fold that happens only after a
+    // `pasa` verdict, and the archive trail.
+    /canonical spec store/i,
+    /after a .?pasa.? verdict/i,
+    /\.sdd\/specs\/requirements\.md/,
+    /\.sdd\/archive/,
+    /non-.?pasa outcome|never (sync|archive) on a non-.?pasa/i,
   ],
   build: [
     /\bRED\b/,
