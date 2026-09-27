@@ -4,3 +4,4 @@ dist/
 .DS_Store
 .claude_last_seen
 .claude_session_state.md
+.pi-subagents/
