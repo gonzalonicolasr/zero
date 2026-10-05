@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>zero — que tu agente planee, construya y lo revise otro</title>
+<meta name="description" content="zero: le pedís una feature a tu agente y antes de tocar código la planea, después la construye con tests y al final otro modelo la revisa. Para pi y Claude Code.">
+<meta property="og:title" content="zero · primero el plan, después la prueba">
+<meta property="og:description" content="Tu agente dice «listo». zero le pide la prueba. Para pi y Claude Code.">
+<meta property="og:image" content="https://zero.gonzalorocca.com/img/fig1-obra.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles-2.css">
+<link rel="icon" type="image/png" href="./img/favicon-64.png">
+</head>
+<body>
+<header>
+<div class="wrap bar">
+<span class="brand"><img class="mark" src="./img/logo.png" alt="" width="28" height="28">zero</span>
+<nav><a href="#como" class="hide-sm">cómo funciona</a><a href="#instalar">instalar</a><span class="dim">v0.1.84</span></nav>
+</div>
+</header>
+<main>
+
+<section class="wide hero-fig">
+<div class="plate"><img src="./img/fig1-obra.jpg" alt="Foto de 1892: el edificio de Agricultura de la Exposición Colombina de Chicago a medio construir, con la cúpula cubierta de andamios" width="811" height="609"></div>
+<div class="caption"><span class="dim">fig. 1 — la obra · 1892</span><span class="mute">sin plano, <span class="accent">no se construye</span>.</span></div>
+</section>
+
+<section class="wrap hero">
+<img class="emblem" src="./img/logo.png" alt="Logo de zero: un cero mitad piedra tallada y mitad plano punteado, con un compás y una plomada" width="96" height="96">
+<p class="kicker">para pi y Claude Code · desarrollo guiado por spec</p>
+<h1>Tu agente dice «listo».<br><span class="accent">zero le pide la&nbsp;prueba.</span></h1>
+<p class="lede">Le pedís una feature. zero hace que primero la planee, después la construya con tests, y al final la revise otro modelo.</p>
+<button class="copy" data-copy="pi install npm:@gonrocca/zero-pi"><span class="p">$</span><span class="cmd">pi install npm:@gonrocca/zero-pi</span><span class="copy-label">copiar</span></button>
+</section>
+
+<div class="wrap">
+
+<section class="block-s">
+<ul class="cells cols-3">
+<li><p>Antes de tocar código, <b>escribe el plan</b>.</p></li>
+<li><p>Construye <b>con los tests primero</b>.</p></li>
+<li><p>Otro modelo <b>lo revisa</b> y dice si pasa.</p></li>
+</ul>
+</section>
+
+<section id="como" class="block-s ruled">
+<h2>Cómo funciona.</h2>
+<div class="cells cols-2">
+<div><p class="head accent">tu agente solo</p><ol><li>1. le pedís algo</li><li>2. escribe código</li><li>3. te dice «listo» y <span class="fg">cruzás los dedos</span></li></ol></div>
+<div><p class="head fg">con zero</p><ol><li>1. lo planea</li><li>2. lo construye con tests</li><li>3. otro lo revisa: pasa, o <span class="block">vuelve</span></li></ol></div>
+</div>
+
+<div class="triptych">
+<figure style="margin:0">
+<div class="plate"><img src="./img/fig2-terreno.jpg" alt="Foto de 1892: el terreno de la obra, apenas con los pilotes clavados" loading="lazy" width="983" height="320"></div>
+<p class="step">fig. 2 — el terreno</p>
+<h3>Primero, el plan.</h3>
+<p>Mira tu código, anota qué hay que hacer y lo parte en tareas chicas.</p>
+</figure>
+<figure style="margin:0">
+<div class="plate"><img src="./img/fig3-andamios.jpg" alt="Foto de 1892: la fachada del edificio cubierta de andamios" loading="lazy" width="751" height="563"></div>
+<p class="step">fig. 3 — los andamios</p>
+<h3>Después, la obra.</h3>
+<p>Hace una tarea por vez: primero el test que falla, después el código que lo hace pasar.</p>
+</figure>
+<figure style="margin:0">
+<div class="plate"><img src="./img/fig4-terminado.jpg" alt="Foto de 1893: la fachada del edificio de Agricultura terminada" loading="lazy" width="899" height="643"></div>
+<p class="step">fig. 4 — la inspección</p>
+<h3>Al final, el veredicto.</h3>
+<p>Un modelo que no escribió nada corre los tests y decide: pasa, corregir o replantear.</p>
+</figure>
+</div>
+</section>
+
+<section class="block-s ruled">
+<h2>¿Para todo? No.</h2>
+<div class="cells cols-2">
+<div><p class="head accent">algo chico</p><ol><li>un typo, un estilo, un fix de una línea</li><li>→ usá <a href="https://nodd.com.ar">NODD</a>: lo hace directo,</li><li>pero <span class="fg">con los tests corridos de verdad</span></li></ol></div>
+<div><p class="head fg">algo grande</p><ol><li>una feature, varios archivos, varias horas</li><li>→ usá zero: plan, obra con tests</li><li>y <span class="fg">un veredicto de otro modelo</span></li></ol></div>
+</div>
+<p class="body">Planear un typo es burocracia. No planear una feature es apostar. Se llevan bien: cuando el trabajo se agranda, NODD ya tiene una ruta para eso, y se llama <span class="mono fg">forge</span>.</p>
+</section>
+
+<section class="block-s ruled">
+<h2>Seis pasos. Cada uno con el modelo que elijas.</h2>
+<p class="body">Lo barato para mirar, lo fuerte para juzgar. Así no gastás tu mejor modelo en leer archivos.</p>
+<ol class="phases">
+<li><p class="n">1 · clarify</p><p class="name">aclara</p><p class="model">barato</p></li>
+<li><p class="n">2 · explore</p><p class="name">explora</p><p class="model">barato</p></li>
+<li class="strong"><p class="n">3 · plan</p><p class="name">planea</p><p class="model">fuerte</p></li>
+<li class="strong"><p class="n">4 · analyze</p><p class="name">revisa el plan</p><p class="model">fuerte</p></li>
+<li><p class="n">5 · build</p><p class="name">construye</p><p class="model">el que quieras</p></li>
+<li class="strong"><p class="n">6 · veredicto</p><p class="name">juzga</p><p class="model">fuerte</p></li>
+</ol>
+</section>
+
+<section class="block-s ruled">
+<h2>Cómo termina.</h2>
+<div class="term">
+<div class="tabs" role="tablist">
+<button class="tab" role="tab" data-tab="pasa" aria-selected="true">pasa</button>
+<button class="tab" role="tab" data-tab="corregir" aria-selected="false">corregir</button>
+<button class="tab" role="tab" data-tab="tope" aria-selected="false">se acabaron las rondas</button>
+</div>
+<pre data-pane="pasa"><span class="accent" style="font-weight:600">✓ zero · veredicto · pasa · ronda 1/3</span>
+  <span class="fg">las 6 tareas hechas, los tests en verde.</span>
+  todo quedó escrito en .sdd/login-con-google/</pre>
+<pre data-pane="corregir" hidden><span class="block">↻ zero · veredicto · corregir · ronda 1/3</span>
+  <span class="fg">T004: el test de logout no prueba nada.</span>
+  vuelve a construir, con esa lista en la mano.</pre>
+<pre data-pane="tope" hidden><span class="block">✗ zero · tope de rondas · NO VERIFICADO</span>
+  <span class="fg">3 rondas, y el veredicto nunca dio pasa.</span>
+  se frena y te lo dice. no te vende un «listo».</pre>
+</div>
+<p class="term-caption" data-caption></p>
+</section>
+
+<section class="block-s ruled">
+<h2>Todo queda por escrito.</h2>
+<p class="body">Cada feature deja una carpeta en tu repo. Si algo sale mal, sabés qué pidió, qué planeó y por qué lo aprobó.</p>
+<ul class="files">
+<li><span class="f">request.md</span><span class="d">lo que pediste, palabra por palabra</span></li>
+<li><span class="f">findings.md</span><span class="d">lo que encontró al mirar tu código</span></li>
+<li><span class="f">design.md</span><span class="d">cómo lo va a hacer</span></li>
+<li><span class="f">tasks.md</span><span class="d">las tareas, tachadas a medida que salen</span></li>
+<li><span class="f">tdd-evidence.md</span><span class="d">qué test falló y cuál pasó, en cada tarea</span></li>
+<li><span class="f">rounds.json</span><span class="d">cada veredicto, ronda por ronda</span></li>
+</ul>
+</section>
+</div>
+
+<section id="instalar" class="ruled">
+<div class="wrap close">
+<p class="big">Primero el plan.<br>Después la prueba.</p>
+<div class="install">
+<div class="tabs" role="tablist">
+<button class="tab" role="tab" data-itab="pi" aria-selected="true">pi</button>
+<button class="tab" role="tab" data-itab="claude" aria-selected="false">Claude Code</button>
+</div>
+<pre data-ipane="pi">pi install npm:@gonrocca/zero-pi
+pi install npm:pi-subagents
+<span class="c"># después, adentro de pi:</span>
+/forge agregá login con Google</pre>
+<pre data-ipane="claude" hidden>git clone https://github.com/gonzalonicolasr/claude-code-forge
+claude --plugin-dir ./claude-code-forge
+<span class="c"># después, adentro de Claude Code:</span>
+/forge agregá login con Google</pre>
+<div class="install-actions">
+<button class="copy" data-copy-from="install"><span class="p">$</span><span class="cmd">copiar los comandos</span><span class="copy-label">copiar</span></button>
+<a href="https://www.npmjs.com/package/@gonrocca/zero-pi" data-ilink="pi">ver en npm</a>
+<a href="https://github.com/gonzalonicolasr/claude-code-forge" data-ilink="claude" hidden>ver en GitHub</a>
+</div>
+</div>
+</div>
+<div class="wide close-fig">
+<div class="plate"><img src="./img/fig5-pasa.jpg" alt="Foto de 1893: el edificio de Agricultura terminado, visto desde la laguna" loading="lazy" width="893" height="654"></div>
+<div class="caption"><span class="dim">fig. 5 — pasa · 1893</span></div>
+</div>
+</section>
+</main>
+<footer>
+<div class="wide row"><span>zero 0.1.84</span><span>fotos: C. D. Arnold, Exposición Colombina de Chicago, 1892-93 · dominio público</span></div>
+</footer>
+<script>
+const caps = {
+  pasa: 'Cumplió el plan y los tests lo prueban. <span class="fg">Recién ahí dice listo.</span>',
+  corregir: 'Encontró algo flojo. <span class="fg">Vuelve a construir sólo eso.</span>',
+  tope: 'Tres intentos y no pasó. <span class="fg">Te lo dice, no lo esconde.</span>'
+};
+const cap = document.querySelector('[data-caption]');
+const tabs = document.querySelectorAll('[data-tab]');
+function show(k) {
+  tabs.forEach(t => t.setAttribute('aria-selected', t.dataset.tab === k));
+  document.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== k);
+  cap.innerHTML = caps[k];
+}
+tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.tab)));
+show('pasa');
+
+let current = 'pi';
+const itabs = document.querySelectorAll('[data-itab]');
+function ishow(k) {
+  current = k;
+  itabs.forEach(t => t.setAttribute('aria-selected', t.dataset.itab === k));
+  document.querySelectorAll('[data-ipane]').forEach(p => p.hidden = p.dataset.ipane !== k);
+  document.querySelectorAll('[data-ilink]').forEach(a => a.hidden = a.dataset.ilink !== k);
+}
+itabs.forEach(t => t.addEventListener('click', () => ishow(t.dataset.itab)));
+
+function flash(btn) {
+  const l = btn.querySelector('.copy-label');
+  const t = l.textContent;
+  l.textContent = 'copiado';
+  setTimeout(() => l.textContent = t, 1400);
+}
+document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
+  navigator.clipboard?.writeText(b.dataset.copy);
+  flash(b);
+}));
+document.querySelector('[data-copy-from]').addEventListener('click', e => {
+  const pane = document.querySelector(`[data-ipane="${current}"]`);
+  const text = pane.textContent.split('\n').filter(l => !l.startsWith('#')).join('\n');
+  navigator.clipboard?.writeText(text);
+  flash(e.currentTarget);
+});
+</script>
+</body>
+</html>
